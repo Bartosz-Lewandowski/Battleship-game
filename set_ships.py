@@ -14,7 +14,7 @@ def set_ship(taken_spots, board_size, ship_size):
     #Tworzymy pewien warunek, który jest TRUE, i zostanie zmieniony na FALSE, jak statek zostanie ustawiony poprawnie na planszy
     condition = True 
     #Tworzymy pętlę while, która zachodzi dopóki warunek jest True
-    while condition == True:
+    while condition:
         #Pusta lista do której będą dodawane miejsca ustawionego statku
         ship = []
         #losujemy, czy statek ma być ustawiony pionowo, czy poziomo 
@@ -46,26 +46,31 @@ def set_ship(taken_spots, board_size, ship_size):
     # czyli np. kiedy statek będzie ułożony w rogu, żeby nie dodawać miejsc, które do tej planszy nie należą.
     # robimy to poprzez pętle, która przechodzi przez wszystkie elementy statku
     for spot in ship:
-        if spot[0] == 1 and spot[1] == board_size:
-            new_taken_spots.append((spot[0]+1,spot[1]))
-            new_taken_spots.append((spot[0],spot[1]-1))
-        elif spot[0] == 1 and spot[1] == 1:
-            new_taken_spots.append((spot[0]+1,spot[1]))
-            new_taken_spots.append((spot[0],spot[1]+1))
-        elif spot[0] == board_size and spot[1] == 1:
-            new_taken_spots.append((spot[0]-1,spot[1]))
-            new_taken_spots.append((spot[0],spot[1]+1))
-        elif spot[0] == board_size and spot[1] == board_size:
-            new_taken_spots.append((spot[0]-1,spot[1]))
-            new_taken_spots.append((spot[0],spot[1]-1))
-        elif spot[0] == 1:
-            new_taken_spots.append((spot[0]+1,spot[1]))
-            new_taken_spots.append((spot[0],spot[1]+1))
-            new_taken_spots.append((spot[0],spot[1]-1))
+        if spot[0] == 1:
+            if spot[1] == board_size:
+                new_taken_spots.append((spot[0]+1,spot[1]))
+                new_taken_spots.append((spot[0],spot[1]-1))
+            elif spot[1] == 1:
+                new_taken_spots.append((spot[0]+1,spot[1]))
+                new_taken_spots.append((spot[0],spot[1]+1))
+            else:
+                new_taken_spots.append((spot[0]+1,spot[1]))
+                new_taken_spots.append((spot[0],spot[1]+1))
+                new_taken_spots.append((spot[0],spot[1]-1))
+
         elif spot[0] == board_size:
-            new_taken_spots.append((spot[0]-1,spot[1]))
-            new_taken_spots.append((spot[0],spot[1]+1))
-            new_taken_spots.append((spot[0],spot[1]-1))
+            if spot[1] == 1:
+                new_taken_spots.append((spot[0]-1,spot[1]))
+                new_taken_spots.append((spot[0],spot[1]+1))
+
+            elif spot[1] == board_size:
+                new_taken_spots.append((spot[0]-1,spot[1]))
+                new_taken_spots.append((spot[0],spot[1]-1))
+            else: 
+                new_taken_spots.append((spot[0]-1,spot[1]))
+                new_taken_spots.append((spot[0],spot[1]+1))
+                new_taken_spots.append((spot[0],spot[1]-1))
+
         elif spot[1] == 1:
             new_taken_spots.append((spot[0]+1,spot[1]))
             new_taken_spots.append((spot[0]-1,spot[1]))
@@ -79,7 +84,8 @@ def set_ship(taken_spots, board_size, ship_size):
             new_taken_spots.append((spot[0],spot[1]-1))
             new_taken_spots.append((spot[0]+1,spot[1]))
             new_taken_spots.append((spot[0]-1,spot[1]))
-    new_taken_spots.append(ship)
+    new_taken_spots.extend(ship)
+    new_taken_spots = list(dict.fromkeys(new_taken_spots))
     # Zwracamy koordynaty statku, oraz zajęte miejsca, na których statku już nie można postawić 
     return(ship, new_taken_spots)
 
