@@ -85,6 +85,7 @@ def set_ship(taken_spots, board_size, ship_size):
             new_taken_spots.append((spot[0]+1,spot[1]))
             new_taken_spots.append((spot[0]-1,spot[1]))
     new_taken_spots.extend(ship)
+    #usuwamy duplikaty 
     new_taken_spots = list(dict.fromkeys(new_taken_spots))
     # Zwracamy koordynaty statku, oraz zajęte miejsca, na których statku już nie można postawić 
     return(ship, new_taken_spots)
