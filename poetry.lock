@@ -14,10 +14,33 @@ category = "main"
 optional = false
 python-versions = "*"
 
+[[package]]
+name = "pygame-menu"
+version = "3.3.2"
+description = "A menu for pygame, simple, lightweight and easy to use"
+category = "main"
+optional = false
+python-versions = ">=2.7, <4"
+
+[package.dependencies]
+pygame = ">=1.9.6"
+pyperclip = "*"
+
+[package.extras]
+doc = ["sphinx", "sphinx-rtd-theme"]
+
+[[package]]
+name = "pyperclip"
+version = "1.8.1"
+description = "A cross-platform clipboard module for Python. (Only handles plain text for now.)"
+category = "main"
+optional = false
+python-versions = "*"
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "32130e13bc4e3c192f57de5cbcc6c64e6ab502c1629651e4634d948bf5535ab8"
+content-hash = "ac9d3650cb41988201fb9d0d1650ac0e589d029c729b95e33526f0d7c6855f7a"
 
 [metadata.files]
 numpy = [
@@ -98,4 +121,11 @@ pygame = [
     {file = "pygame-2.0.0-pp37-pypy37_pp73-manylinux2010_i686.whl", hash = "sha256:e8effa8b5a8d2bb9c07dccb18337b07174d4956516978a35350bc23e254189cc"},
     {file = "pygame-2.0.0-pp37-pypy37_pp73-manylinux2010_x86_64.whl", hash = "sha256:5a3f0f436174e95027c60a37f06d84d25d2275de3255fe85846baa47c0e36e6b"},
     {file = "pygame-2.0.0.tar.gz", hash = "sha256:63b038da116a643046181b02173fd894d87d2f85ecfd6aa7d5ece73c6ef501e9"},
+]
+pygame-menu = [
+    {file = "pygame-menu-3.3.2.tar.gz", hash = "sha256:58cf8714f09b3a48cf576839e71a5bd7fbb326597d33e639f377f1ab85ac97fc"},
+    {file = "pygame_menu-3.3.2-py2.py3-none-any.whl", hash = "sha256:4d7a5edaba03bf7dc3ea277fb507d7edff931170a80935f23110ae6ddf631a80"},
+]
+pyperclip = [
+    {file = "pyperclip-1.8.1.tar.gz", hash = "sha256:9abef1e79ce635eb62309ecae02dfb5a3eb952fa7d6dce09c1aef063f81424d3"},
 ]

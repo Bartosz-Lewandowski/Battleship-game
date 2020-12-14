@@ -1,7 +1,7 @@
 #importujemy potrzebne biblioteki
 import random 
 import numpy as np 
-
+import constants
 # Pierwsza funkcja, która będzie wywoływana w funkcji kolejnej 
 # Przyjmuje na wejściu: taken_spots - zajęte miejsca na planszy, czyli miejsca na których nie można postawić statku
 #                       board_size - rozmiar planszy, możliwe 3 opcje w zależności którą planszę wybrał użytkownik
@@ -99,7 +99,7 @@ def set_ships(board_size):
     #Jeżeli rozmiar planszy będzie 9 to tworzymy listę z rozmiarami statków, które maja się na tej liście znaleźć 
     if board_size == 9:
         # czyli tutaj mamy 3 trójmasztowce, 2 dwumasztowce i 3 jednomasztowce
-        ships_sizes = [3,3,3,2,2,1,1,1]
+        ships_sizes = constants.SHIPS_9
         #Przechodzimy pętlą przez każdy rozmiar statku 
         for i in ships_sizes:
             #wywołujemy poprzednią funckję dając jej parametry widoczne poniżej, gdzie i to rozmiar i-tego statku.
@@ -110,7 +110,7 @@ def set_ships(board_size):
             taken_spots.extend(tmp_ship[1])
     #Te same czynności, tylko dla planszy o rozmiarze 12        
     elif board_size == 12:
-        ships_sizes = [4,3,3,2,2,2,1,1,1,1]
+        ships_sizes = constants.SHIPS_12
         for i in ships_sizes:
             axis = random.randint(0,1)
             tmp_ship = set_ship(taken_spots, board_size, i)
@@ -118,7 +118,7 @@ def set_ships(board_size):
             taken_spots.extend(tmp_ship[1])
     #Te same czynności, tylko dla planszy o rozmiarze 15
     elif board_size == 15:
-        ships_sizes = [4,3,3,3,2,2,2,1,1,1,1,1]
+        ships_sizes = constants.SHIPS_15
         for i in ships_sizes:
             axis = random.randint(0,1)
             tmp_ship = set_ship(taken_spots, board_size, i)
