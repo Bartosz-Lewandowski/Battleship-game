@@ -16,7 +16,7 @@ class Tile:
     def draw(self):
         if self.header:
             self.window.blit(
-                self.font.render(self.header, True, (255, 0, 0)),
+                self.font.render(self.header, True, (200, 200, 200)),
                 (self.xpos + self.offset_letter, self.ypos + self.offset_letter),
             )
         else:
