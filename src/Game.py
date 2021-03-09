@@ -9,16 +9,18 @@ from Ship import Ship
 from DraggableShip import DraggableShip
 from GenericButton import GenericButton
 
-ships_laoyout_stage = pygame.event.Event(pygame.USEREVENT, attr1="layout_stage")
+ships_layout_stage = pygame.event.Event(pygame.USEREVENT, attr1="layout_stage")
 start_game_stage = pygame.event.Event(pygame.USEREVENT, attr1="start_game_stage")
 
 
 class Game:
     def __init__(self):
         pygame.init()
+        pygame.display.set_caption('Battleship')
         self.surface = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
         self.ships_layout_type = 0
         self.main_loop()
+
 
     def draw_menu(self):
         def start_the_game(size):
@@ -29,17 +31,38 @@ class Game:
                 self.avalaible_ships = constants.SHIPS_12
             if self.board_size == 16:
                 self.avalaible_ships = constants.SHIPS_15
-            pygame.event.post(ships_laoyout_stage)
+            pygame.event.post(ships_layout_stage)
 
         def set_ships_layout(selected, value):
             self.ships_layout_type = selected[1]
 
+        font = pygame_menu.font.FONT_8BIT
+
+        my_theme = pygame_menu.themes.Theme(
+            widget_font=font,
+            background_color=(40, 41, 35),
+            cursor_color=(255, 255, 255),
+            cursor_selection_color=(80, 80, 80, 120),
+            scrollbar_color=(39, 41, 42),
+            scrollbar_slider_color=(65, 66, 67),
+            selection_color=(255, 255, 255),
+            title_background_color=(47, 48, 51),
+            title_font_color=(215, 215, 215),
+            widget_font_color=(200, 200, 200),
+            title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_NONE
+        )
+
         self.menu = pygame_menu.Menu(
             height=constants.HEIGHT,
             width=constants.WIDTH,
-            theme=pygame_menu.themes.THEME_DARK,
-            title="Battleship Game",
+            theme=my_theme,
+            title=" ",
         )
+
+        self.menu.add_label('MAIN MENU', font_size=100)
+        self.menu.add_image('skull.png', scale=(0.15,0.15))
+        self.menu.add_label(' ',max_char=-1, font_size=100)
+        
         self.menu.add_selector(
             "Ships layout: ", [("Random", 0), ("Pick", 1)], onchange=set_ships_layout
         )
@@ -47,6 +70,7 @@ class Game:
         self.menu.add_button("12 x 12", lambda: start_the_game(13))
         self.menu.add_button("15 x 15", lambda: start_the_game(16))
         self.menu.add_button("Exit", pygame_menu.events.EXIT)
+        
 
     def main_loop(self):
         self.stage = "MENU"
@@ -60,13 +84,14 @@ class Game:
             self.surface,
         )
         self.draw_menu()
+        
         drag = False
         while True:
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
                     exit()
-                if event == ships_laoyout_stage:
+                if event == ships_layout_stage:
                     self.surface.fill((40, 41, 35))
                     self.go_back_button.draw()
                     self.menu.disable()
@@ -95,6 +120,7 @@ class Game:
                 # drag jest True bo jeszcze nie puściliśmy przycisku myszy
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
+                    self.button_clicked = False
                     if self.go_back_button.clicked(pos):
                         self.button_clicked = True
                     if self.stage == "SET_SHIPS":
@@ -142,6 +168,13 @@ class Game:
                 self.menu.draw(self.surface)
 
             pygame.display.update()
+
+    def draw_text(self, text, size, x, y ):
+        font = pygame.font.Font(self.font_name,size)
+        text_surface = font.render(text, True, (255,255,255))
+        text_rect = text_surface.get_rect()
+        text_rect.center = (x,y)
+        self.surface.blit(text_surface,text_rect)
 
     # tworzenie siatki planszy
     def generate_grid(self, offsetX, offsetY):

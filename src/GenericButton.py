@@ -8,7 +8,6 @@ class GenericButton:
         self.x = x
         self.y = y
         self.header = header
-        print(self.header)
         self.font = pygame.font.SysFont("Arial", int(h * 0.6))
         self.window = window
         self.color = pygame.Color(0, 164, 164, 164)

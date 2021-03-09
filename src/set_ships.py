@@ -95,7 +95,7 @@ def draw_matrix(board_size):
         matrix[i[0]-1,i[1]-1] = 1
     return matrix
 
-
+'''
 test_ship = [(1, 1), (1, 2), (1, 3)] 
 test_taken = [(3, 7), (3, 5), (4, 6), (2, 6), (3, 8), (3, 6), (4, 7), (2, 7), (3, 9), (4, 8), (2, 8), (6, 8), (7, 9), (5, 9), (7, 8), (8, 9), (6, 9), (8, 8), (9, 9)]
 def check_validate(taken_spots, ship):
@@ -104,5 +104,5 @@ def check_validate(taken_spots, ship):
     else:
         print('Ship is validate')
 
-check_validate(test_taken,test_ship)
+check_validate(test_taken,test_ship)'''
 
