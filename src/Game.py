@@ -10,6 +10,7 @@ from DraggableShip import DraggableShip
 from GenericButton import GenericButton
 
 ships_layout_stage = pygame.event.Event(pygame.USEREVENT, attr1="layout_stage")
+select_size_stage = pygame.event.Event(pygame.USEREVENT, attr1="select_size_stage")
 start_game_stage = pygame.event.Event(pygame.USEREVENT, attr1="start_game_stage")
 
 
@@ -19,27 +20,10 @@ class Game:
         pygame.display.set_caption('Battleship')
         self.surface = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
         self.ships_layout_type = 0
-        self.main_loop()
-
-
-    def draw_menu(self):
-        def start_the_game(size):
-            self.board_size = size
-            if self.board_size == 10:
-                self.avalaible_ships = constants.SHIPS_9
-            if self.board_size == 13:
-                self.avalaible_ships = constants.SHIPS_12
-            if self.board_size == 16:
-                self.avalaible_ships = constants.SHIPS_15
-            pygame.event.post(ships_layout_stage)
-
-        def set_ships_layout(selected, value):
-            self.ships_layout_type = selected[1]
-
-        font = pygame_menu.font.FONT_8BIT
-
-        my_theme = pygame_menu.themes.Theme(
-            widget_font=font,
+        self.game_diff = 0
+        self.font = pygame_menu.font.FONT_8BIT
+        self.my_theme = pygame_menu.themes.Theme(
+            widget_font=self.font,
             background_color=(40, 41, 35),
             cursor_color=(255, 255, 255),
             cursor_selection_color=(80, 80, 80, 120),
@@ -51,11 +35,50 @@ class Game:
             widget_font_color=(200, 200, 200),
             title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_NONE
         )
+        self.main_loop()
+    def draw_menu(self):
+        def select_size(size):
+            self.board_size = size
+            if self.board_size == 10:
+                self.avalaible_ships = constants.SHIPS_9
+            if self.board_size == 13:
+                self.avalaible_ships = constants.SHIPS_12
+            if self.board_size == 16:
+                self.avalaible_ships = constants.SHIPS_15
+            self.menu.clear()
+            self.menu.add_button("Easy", lambda: select_difficulty(0))
+            self.menu.add_button("Hard", lambda: select_difficulty(1))
+            
+
+        def select_difficulty(difficulty):
+            if difficulty == 1:
+                self.game_diff = 1
+            elif difficulty == 0:
+                self.game_diff = 0
+            self.menu.clear()
+            self.menu.add_button("Random", lambda: select_ships_layout(0))
+            self.menu.add_button("Pick", lambda: select_ships_layout(1))
+        
+        def start_the_game():
+            self.menu.clear()
+            self.menu.add_button("9 x 9", lambda: select_size(10))
+            self.menu.add_button("12 x 12", lambda: select_size(13))
+            self.menu.add_button("15 x 15", lambda: select_size(16))
+
+        def select_ships_layout(layout):
+            print(self.game_diff)
+            if layout == 1:
+                self.ships_layout_type = 1
+            elif layout == 0:
+                self.ships_layout_type = 0
+            print(self.ships_layout_type)
+            pygame.event.post(ships_layout_stage)
+        
 
         self.menu = pygame_menu.Menu(
             height=constants.HEIGHT,
             width=constants.WIDTH,
-            theme=my_theme,
+            theme=self.my_theme,
             title=" ",
         )
 
@@ -63,12 +86,7 @@ class Game:
         self.menu.add_image('skull.png', scale=(0.15,0.15))
         self.menu.add_label(' ',max_char=-1, font_size=100)
         
-        self.menu.add_selector(
-            "Ships layout: ", [("Random", 0), ("Pick", 1)], onchange=set_ships_layout
-        )
-        self.menu.add_button("9 x 9", lambda: start_the_game(10))
-        self.menu.add_button("12 x 12", lambda: start_the_game(13))
-        self.menu.add_button("15 x 15", lambda: start_the_game(16))
+        self.menu.add_button("START GAME", lambda: start_the_game())
         self.menu.add_button("Exit", pygame_menu.events.EXIT)
         
 
@@ -86,11 +104,13 @@ class Game:
         self.draw_menu()
         
         drag = False
+
         while True:
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
                     exit()
+
                 if event == ships_layout_stage:
                     self.surface.fill((40, 41, 35))
                     self.go_back_button.draw()
