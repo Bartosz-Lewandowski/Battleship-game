@@ -37,6 +37,33 @@ class Game:
         )
         self.main_loop()
     def draw_menu(self):
+        self.menu = pygame_menu.Menu(
+            height=constants.HEIGHT,
+            width=constants.WIDTH,
+            theme=self.my_theme,
+            title=" ",
+        )
+        def main_menu():
+            self.menu.clear()
+            self.menu.add_image('statek.png', scale=(0.5,0.5))
+            self.menu.add_vertical_margin(50)
+            self.menu.add_label('MAIN MENU', font_size=100)
+            self.menu.add_vertical_margin(200)
+            
+            self.menu.add_button("START GAME", lambda: start_the_game())
+            self.menu.add_button("HELP", lambda: go_to_help())
+            self.menu.add_button("Exit", pygame_menu.events.EXIT)
+
+        def start_the_game():
+            self.menu.clear()
+            self.menu.add_label('Select board size', font_size=50)
+            self.menu.add_vertical_margin(150)
+            self.menu.add_button("9 x 9", lambda: select_size(10))
+            self.menu.add_button("12 x 12", lambda: select_size(13))
+            self.menu.add_button("15 x 15", lambda: select_size(16))
+            self.menu.add_vertical_margin(100)
+            self.menu.add_button('Back to menu', lambda: main_menu())
+
         def select_size(size):
             self.board_size = size
             if self.board_size == 10:
@@ -46,9 +73,12 @@ class Game:
             if self.board_size == 16:
                 self.avalaible_ships = constants.SHIPS_15
             self.menu.clear()
+            self.menu.add_label('Select difficulty level', font_size=50)
+            self.menu.add_vertical_margin(150)
             self.menu.add_button("Easy", lambda: select_difficulty(0))
             self.menu.add_button("Hard", lambda: select_difficulty(1))
-            
+            self.menu.add_vertical_margin(100)
+            self.menu.add_button('Back to menu', lambda: main_menu())
 
         def select_difficulty(difficulty):
             if difficulty == 1:
@@ -56,39 +86,24 @@ class Game:
             elif difficulty == 0:
                 self.game_diff = 0
             self.menu.clear()
+            self.menu.add_label('Select ships layout', font_size=50)
+            self.menu.add_vertical_margin(150)
             self.menu.add_button("Random", lambda: select_ships_layout(0))
             self.menu.add_button("Pick", lambda: select_ships_layout(1))
+            self.menu.add_vertical_margin(100)
+            self.menu.add_button('Back to menu', lambda: main_menu())
         
-        def start_the_game():
-            self.menu.clear()
-            self.menu.add_button("9 x 9", lambda: select_size(10))
-            self.menu.add_button("12 x 12", lambda: select_size(13))
-            self.menu.add_button("15 x 15", lambda: select_size(16))
-
         def select_ships_layout(layout):
-            print(self.game_diff)
             if layout == 1:
                 self.ships_layout_type = 1
             elif layout == 0:
                 self.ships_layout_type = 0
-            print(self.ships_layout_type)
             pygame.event.post(ships_layout_stage)
         
+        def go_to_help():
+            pass
 
-        self.menu = pygame_menu.Menu(
-            height=constants.HEIGHT,
-            width=constants.WIDTH,
-            theme=self.my_theme,
-            title=" ",
-        )
-
-        self.menu.add_label('MAIN MENU', font_size=100)
-        self.menu.add_image('skull.png', scale=(0.15,0.15))
-        self.menu.add_label(' ',max_char=-1, font_size=100)
-        
-        self.menu.add_button("START GAME", lambda: start_the_game())
-        self.menu.add_button("Exit", pygame_menu.events.EXIT)
-        
+        main_menu()
 
     def main_loop(self):
         self.stage = "MENU"
