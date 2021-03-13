@@ -8,11 +8,13 @@ class GenericButton:
         self.x = x
         self.y = y
         self.header = header
-        self.font = pygame.font.SysFont("Arial", int(h * 0.6))
+        self.font_name = '8-BIT WONDER.TTF'
+        self.font = pygame.font.Font(self.font_name, int(h * 0.4))
         self.window = window
         self.color = pygame.Color(0, 164, 164, 164)
         self.rectangle = pygame.Rect(x, y, w, h)
         self.offset_letter=int(self.h * 0.3)
+
     def draw(self):
         if self.header:
             self.window.blit(
