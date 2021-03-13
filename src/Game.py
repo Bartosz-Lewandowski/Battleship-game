@@ -21,9 +21,8 @@ class Game:
         self.surface = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
         self.ships_layout_type = 0
         self.game_diff = 0
-        self.font = pygame_menu.font.FONT_8BIT
         self.my_theme = pygame_menu.themes.Theme(
-            widget_font=self.font,
+            widget_font=pygame_menu.font.FONT_8BIT,
             background_color=(40, 41, 35),
             cursor_color=(255, 255, 255),
             cursor_selection_color=(80, 80, 80, 120),
@@ -36,6 +35,7 @@ class Game:
             title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_NONE
         )
         self.main_loop()
+
     def draw_menu(self):
         self.menu = pygame_menu.Menu(
             height=constants.HEIGHT,
@@ -43,67 +43,8 @@ class Game:
             theme=self.my_theme,
             title=" ",
         )
-        def main_menu():
-            self.menu.clear()
-            self.menu.add_image('statek.png', scale=(0.5,0.5))
-            self.menu.add_vertical_margin(50)
-            self.menu.add_label('MAIN MENU', font_size=100)
-            self.menu.add_vertical_margin(200)
-            
-            self.menu.add_button("START GAME", lambda: start_the_game())
-            self.menu.add_button("HELP", lambda: go_to_help())
-            self.menu.add_button("Exit", pygame_menu.events.EXIT)
-
-        def start_the_game():
-            self.menu.clear()
-            self.menu.add_label('Select board size', font_size=50)
-            self.menu.add_vertical_margin(150)
-            self.menu.add_button("9 x 9", lambda: select_size(10))
-            self.menu.add_button("12 x 12", lambda: select_size(13))
-            self.menu.add_button("15 x 15", lambda: select_size(16))
-            self.menu.add_vertical_margin(100)
-            self.menu.add_button('Back to menu', lambda: main_menu())
-
-        def select_size(size):
-            self.board_size = size
-            if self.board_size == 10:
-                self.avalaible_ships = constants.SHIPS_9
-            if self.board_size == 13:
-                self.avalaible_ships = constants.SHIPS_12
-            if self.board_size == 16:
-                self.avalaible_ships = constants.SHIPS_15
-            self.menu.clear()
-            self.menu.add_label('Select difficulty level', font_size=50)
-            self.menu.add_vertical_margin(150)
-            self.menu.add_button("Easy", lambda: select_difficulty(0))
-            self.menu.add_button("Hard", lambda: select_difficulty(1))
-            self.menu.add_vertical_margin(100)
-            self.menu.add_button('Back to menu', lambda: main_menu())
-
-        def select_difficulty(difficulty):
-            if difficulty == 1:
-                self.game_diff = 1
-            elif difficulty == 0:
-                self.game_diff = 0
-            self.menu.clear()
-            self.menu.add_label('Select ships layout', font_size=50)
-            self.menu.add_vertical_margin(150)
-            self.menu.add_button("Random", lambda: select_ships_layout(0))
-            self.menu.add_button("Pick", lambda: select_ships_layout(1))
-            self.menu.add_vertical_margin(100)
-            self.menu.add_button('Back to menu', lambda: main_menu())
         
-        def select_ships_layout(layout):
-            if layout == 1:
-                self.ships_layout_type = 1
-            elif layout == 0:
-                self.ships_layout_type = 0
-            pygame.event.post(ships_layout_stage)
-        
-        def go_to_help():
-            pass
-
-        main_menu()
+        self.main_menu()
 
     def main_loop(self):
         self.stage = "MENU"
@@ -111,9 +52,17 @@ class Game:
         self.go_back_button = GenericButton(
             250,
             60,
-            constants.WIDTH / 2 - 110,
+            constants.WIDTH / 2 - 140,
             constants.HEIGHT - 80,
-            "Back to menu",
+            "Go back to main menu",
+            self.surface,
+        )
+        self.reset_layout = GenericButton(
+            250,
+            60,
+            constants.WIDTH - 140,
+            constants.HEIGHT - 1000,
+            "Reset",
             self.surface,
         )
         self.draw_menu()
@@ -141,6 +90,8 @@ class Game:
                         ]
                         self.draw_board(chosing_stage=True)
                         self.go_back_button.draw()
+                        self.reset_layout.draw()
+
                 if event == start_game_stage:
                     self.surface.fill((40, 41, 35))
                     self.draw_board()
@@ -156,12 +107,14 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
                     self.button_clicked = False
-                    if self.go_back_button.clicked(pos):
+                    if self.go_back_button.clicked(pos) or self.reset_layout.clicked(pos):
                         self.button_clicked = True
+
                     if self.stage == "SET_SHIPS":
                         self.find_dragged(pos)
                         drag = True
                         self.go_back_button.draw()
+                        self.reset_layout.draw()
                 # mousemotion - ruch muszy po planszy
                 # etap przesuwania statku
                 # bierzemy pozycję myszki i rysujemy od nowa planszę, statki i przesuwany statek
@@ -173,6 +126,7 @@ class Game:
                         self.draw_draggable_ships()
                         self.dragged_ship.move(pos)
                         self.go_back_button.draw()
+                        self.reset_layout.draw()
 
                 # mousebuttonup - zwolnienie przycisku myszy
                 # pobieramy współrzędne myszki
@@ -191,11 +145,20 @@ class Game:
                         self.draw_playerboard()
                         self.draw_draggable_ships()
                         self.go_back_button.draw()
+                        self.reset_layout.draw()
                     if self.button_clicked and self.go_back_button.clicked(pos):
-                        self.menu.enable()
-                        self.menu.update(events)
-                        self.menu.draw(self.surface)
+                        self.draw_menu()
                         self.button_clicked = False
+                    if self.button_clicked and self.reset_layout.clicked(pos):
+                        self.surface.fill((40, 41, 35))
+                        self.draw_playerboard()
+                        self.ships_matrix = [
+                            [0 for i in range(0, self.board_size - 1)]
+                            for i in range(0, self.board_size - 1)
+                        ]
+                        self.draw_board(chosing_stage=True)
+                        self.go_back_button.draw()
+                        self.reset_layout.draw()
             # main_loop end
 
             if self.menu.is_enabled():
@@ -203,6 +166,66 @@ class Game:
                 self.menu.draw(self.surface)
 
             pygame.display.update()
+
+    def main_menu(self):
+        self.menu.clear()
+        self.menu.add_image('statek.png', scale=(0.5,0.5))
+        self.menu.add_vertical_margin(50)
+        self.menu.add_label('MAIN MENU', font_size=100)
+        self.menu.add_vertical_margin(200)
+        
+        self.menu.add_button("START GAME", lambda: self.start_the_game())
+        self.menu.add_button("HELP", lambda: self.go_to_help())
+        self.menu.add_button("Exit", pygame_menu.events.EXIT)
+
+    def start_the_game(self):
+        self.menu.clear()
+        self.menu.add_label('Select board size', font_size=50)
+        self.menu.add_vertical_margin(150)
+        self.menu.add_button("9 x 9", lambda: self.select_size(10))
+        self.menu.add_button("12 x 12", lambda: self.select_size(13))
+        self.menu.add_button("15 x 15", lambda: self.select_size(16))
+        self.menu.add_vertical_margin(100)
+        self.menu.add_button('Back to menu', lambda: self.main_menu())
+
+    def select_size(self,size):
+        self.board_size = size
+        if self.board_size == 10:
+            self.avalaible_ships = constants.SHIPS_9
+        if self.board_size == 13:
+            self.avalaible_ships = constants.SHIPS_12
+        if self.board_size == 16:
+            self.avalaible_ships = constants.SHIPS_15
+        self.menu.clear()
+        self.menu.add_label('Select difficulty level', font_size=50)
+        self.menu.add_vertical_margin(150)
+        self.menu.add_button("Easy", lambda: self.select_difficulty(0))
+        self.menu.add_button("Hard", lambda: self.select_difficulty(1))
+        self.menu.add_vertical_margin(100)
+        self.menu.add_button('Back to menu', lambda: self.main_menu())
+
+    def select_difficulty(self,difficulty):
+        if difficulty == 1:
+            self.game_diff = 1
+        elif difficulty == 0:
+            self.game_diff = 0
+        self.menu.clear()
+        self.menu.add_label('Select ships layout', font_size=50)
+        self.menu.add_vertical_margin(150)
+        self.menu.add_button("Random", lambda: self.select_ships_layout(0))
+        self.menu.add_button("Pick", lambda: self.select_ships_layout(1))
+        self.menu.add_vertical_margin(100)
+        self.menu.add_button('Back to menu', lambda: self.main_menu())
+    
+    def select_ships_layout(self,layout):
+        if layout == 1:
+            self.ships_layout_type = 1
+        elif layout == 0:
+            self.ships_layout_type = 0
+        pygame.event.post(ships_layout_stage)
+    
+    def go_to_help(self):
+        pass
 
     def draw_text(self, text, size, x, y ):
         font = pygame.font.Font(self.font_name,size)
