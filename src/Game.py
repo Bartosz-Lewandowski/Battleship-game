@@ -65,10 +65,17 @@ class Game:
             "Reset",
             self.surface,
         )
+        self.start_button = GenericButton(
+            250,
+            60,
+            constants.WIDTH - 140,
+            constants.HEIGHT - 950,
+            "Start Game",
+            self.surface,
+        )
         self.draw_menu()
         
         drag = False
-
         while True:
             events = pygame.event.get()
             for event in events:
@@ -91,7 +98,7 @@ class Game:
                         self.draw_board(chosing_stage=True)
                         self.go_back_button.draw()
                         self.reset_layout.draw()
-
+                        self.start_button.draw()
                 if event == start_game_stage:
                     self.surface.fill((40, 41, 35))
                     self.draw_board()
@@ -107,19 +114,19 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
                     self.button_clicked = False
+                    self.go_back_button.draw()
                     if self.go_back_button.clicked(pos) or self.reset_layout.clicked(pos):
                         self.button_clicked = True
-
                     if self.stage == "SET_SHIPS":
                         self.find_dragged(pos)
                         drag = True
-                        self.go_back_button.draw()
                         self.reset_layout.draw()
+                        self.start_button.draw()
                 # mousemotion - ruch muszy po planszy
                 # etap przesuwania statku
                 # bierzemy pozycję myszki i rysujemy od nowa planszę, statki i przesuwany statek
                 if event.type == pygame.MOUSEMOTION:
-                    if drag and self.dragged_ship is not None:
+                    if self.stage == "SET_SHIPS" and drag and self.dragged_ship is not None:
                         pos = pygame.mouse.get_pos()
                         self.surface.fill((40, 41, 35))
                         self.draw_playerboard()
@@ -127,6 +134,7 @@ class Game:
                         self.dragged_ship.move(pos)
                         self.go_back_button.draw()
                         self.reset_layout.draw()
+                        self.start_button.draw()
 
                 # mousebuttonup - zwolnienie przycisku myszy
                 # pobieramy współrzędne myszki
@@ -134,31 +142,45 @@ class Game:
                 # w if ustawiamy nową pozycję statku, jeśli miejsce jest poprawne
                 # wszystko rysujemy ponownie
                 if event.type == pygame.MOUSEBUTTONUP:
-                    if self.stage == "SET_SHIPS" and self.dragged_ship is not None:
-                        pos = pygame.mouse.get_pos()
-                        tile = self.match_validate_tile_to_ship(pos)
-                        if tile:
-                            self.dragged_ship.set_new_pos(tile.xpos, tile.ypos)
-                        self.dragged_ship = None
-                        drag = False
-                        self.surface.fill((40, 41, 35))
-                        self.draw_playerboard()
-                        self.draw_draggable_ships()
-                        self.go_back_button.draw()
-                        self.reset_layout.draw()
                     if self.button_clicked and self.go_back_button.clicked(pos):
-                        self.draw_menu()
-                        self.button_clicked = False
-                    if self.button_clicked and self.reset_layout.clicked(pos):
-                        self.surface.fill((40, 41, 35))
-                        self.draw_playerboard()
-                        self.ships_matrix = [
-                            [0 for i in range(0, self.board_size - 1)]
-                            for i in range(0, self.board_size - 1)
-                        ]
-                        self.draw_board(chosing_stage=True)
-                        self.go_back_button.draw()
-                        self.reset_layout.draw()
+                            self.draw_menu()
+                            self.button_clicked = False
+                    if self.stage == "SET_SHIPS":
+                        if self.dragged_ship is not None:
+                            pos = pygame.mouse.get_pos()
+                            tile = self.match_validate_tile_to_ship(pos)
+                            if tile:
+                                self.dragged_ship.set_new_pos(tile.xpos, tile.ypos)
+                            self.dragged_ship = None
+                            drag = False
+                            self.surface.fill((40, 41, 35))
+                            self.draw_playerboard()
+                            self.draw_draggable_ships()
+                            self.go_back_button.draw()
+                            self.reset_layout.draw()
+                            self.start_button.draw()
+
+                        if self.button_clicked and self.reset_layout.clicked(pos):
+                            self.surface.fill((40, 41, 35))
+                            self.draw_playerboard()
+                            self.ships_matrix = [
+                                [0 for i in range(0, self.board_size - 1)]
+                                for i in range(0, self.board_size - 1)
+                            ]
+                            self.draw_board(chosing_stage=True)
+                            self.go_back_button.draw()
+                            self.reset_layout.draw()
+                            self.start_button.draw()
+                        if self.start_button.clicked(pos):
+                            total_ship_tiles = 0
+                            for row in self.ships_matrix:
+                                for ship in row:
+                                    if ship != 0:
+                                        total_ship_tiles += 1
+                            if total_ship_tiles == sum(self.avalaible_ships):
+                                self.stage = "PLAYING"
+                                pygame.event.post(start_game_stage)
+
             # main_loop end
 
             if self.menu.is_enabled():
@@ -289,7 +311,7 @@ class Game:
         self.ship_tiles = []
         for x in range(0, len(self.ships_matrix)):
             for y in range(0, len(self.ships_matrix[x])):
-                if self.ships_matrix[x][y] == 1:
+                if self.ships_matrix[x][y] != 0:
                     self.ship_tiles.append(
                         Ship(
                             self.surface,
