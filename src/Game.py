@@ -8,6 +8,7 @@ from set_ships import draw_matrix
 from Ship import Ship
 from DraggableShip import DraggableShip
 from GenericButton import GenericButton
+from Shoot import Shoot
 
 ships_layout_stage = pygame.event.Event(pygame.USEREVENT, attr1="layout_stage")
 select_size_stage = pygame.event.Event(pygame.USEREVENT, attr1="select_size_stage")
@@ -50,26 +51,26 @@ class Game:
         self.stage = "MENU"
         self.dragged_ship = None
         self.go_back_button = GenericButton(
-            250,
+            300,
             60,
             constants.WIDTH / 2 - 140,
             constants.HEIGHT - 80,
-            "Go back to main menu",
+            "Back to menu",
             self.surface,
         )
         self.reset_layout = GenericButton(
-            250,
+            200,
             60,
-            constants.WIDTH - 140,
-            constants.HEIGHT - 1000,
+            constants.WIDTH - 150,
+            constants.HEIGHT - 950,
             "Reset",
             self.surface,
         )
         self.start_button = GenericButton(
             250,
             60,
-            constants.WIDTH - 140,
-            constants.HEIGHT - 950,
+            constants.WIDTH - 270,
+            constants.HEIGHT - 1000,
             "Start Game",
             self.surface,
         )
@@ -88,7 +89,9 @@ class Game:
                     self.menu.disable()
                     if self.ships_layout_type == 0:
                         self.ships_matrix = draw_matrix(self.board_size - 1)
+                        self.stage = "PLAYING"
                         pygame.event.post(start_game_stage)
+
                     else:
                         self.stage = "SET_SHIPS"
                         self.ships_matrix = [
@@ -99,6 +102,7 @@ class Game:
                         self.go_back_button.draw()
                         self.reset_layout.draw()
                         self.start_button.draw()
+
                 if event == start_game_stage:
                     self.surface.fill((40, 41, 35))
                     self.draw_board()
@@ -122,7 +126,23 @@ class Game:
                         drag = True
                         self.reset_layout.draw()
                         self.start_button.draw()
-                # mousemotion - ruch muszy po planszy
+
+                    if (self.stage == 'PLAYING' and 
+                        pos[0] in range(int(self.tile_width) + int(self.offset_enemy_grid),int(self.tile_width * self.board_size) + int(self.offset_enemy_grid)) and 
+                        pos[1] in range(int(self.tile_width) + self.offsetY,int(self.tile_width * self.board_size) + self.offsetY)):
+
+                        x = int((pos[0] - int(self.offset_enemy_grid))//self.tile_width)
+                        y = int((pos[1] - self.offsetY)//self.tile_width)
+
+                        print(pos)
+                        print(x,y)
+                        Shoot(
+                            self.surface,
+                            self.tile_width,
+                            self.enemy_board[x][y].xpos,
+                            self.enemy_board[x][y].ypos,
+                        )
+                # mousemotion - ruch myszy po planszy
                 # etap przesuwania statku
                 # bierzemy pozycję myszki i rysujemy od nowa planszę, statki i przesuwany statek
                 if event.type == pygame.MOUSEMOTION:
@@ -144,6 +164,7 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONUP:
                     if self.button_clicked and self.go_back_button.clicked(pos):
                             self.draw_menu()
+                            self.stage = 'MENU'
                             self.button_clicked = False
                     if self.stage == "SET_SHIPS":
                         if self.dragged_ship is not None:
@@ -171,6 +192,7 @@ class Game:
                             self.go_back_button.draw()
                             self.reset_layout.draw()
                             self.start_button.draw()
+                            
                         if self.start_button.clicked(pos):
                             total_ship_tiles = 0
                             for row in self.ships_matrix:
@@ -282,7 +304,7 @@ class Game:
 
     # rysowanie planszy
     def draw_board(self, chosing_stage=False):
-        self.tile_width = ((constants.WIDTH - 100) / self.board_size) / 2
+        self.tile_width = ((constants.WIDTH - 100) / self.board_size) // 2
         self.offset_enemy_grid = self.tile_width * self.board_size + 50
         self.offsetX = 20
         self.offsetY = 20
@@ -320,6 +342,8 @@ class Game:
                             self.player_board[x + 1][y + 1].xpos,
                         )
                     )
+    
+
 
     # rysowanie statków wszystkich, oprócz aktualnie przesuwanego
     def draw_draggable_ships(self):
