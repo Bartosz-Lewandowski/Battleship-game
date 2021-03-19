@@ -2,9 +2,11 @@ import os
 import pygame
 import pygame_menu
 from copy import deepcopy
+from random import randint
+import time 
 import constants
 from Tile import Tile
-from set_ships import draw_matrix
+from set_ships import draw_matrix, set_ships
 from Ship import Ship
 from DraggableShip import DraggableShip
 from GenericButton import GenericButton
@@ -13,6 +15,8 @@ from Shoot import Shoot
 ships_layout_stage = pygame.event.Event(pygame.USEREVENT, attr1="layout_stage")
 select_size_stage = pygame.event.Event(pygame.USEREVENT, attr1="select_size_stage")
 start_game_stage = pygame.event.Event(pygame.USEREVENT, attr1="start_game_stage")
+end_game = pygame.event.Event(pygame.USEREVENT, attr1="end_game")
+
 
 
 class Game:
@@ -88,8 +92,13 @@ class Game:
                     self.go_back_button.draw()
                     self.menu.disable()
                     if self.ships_layout_type == 0:
-                        self.ships_matrix = draw_matrix(self.board_size - 1)
+                        self.player_ships = set_ships(self.board_size - 1)
+                        self.ships_matrix = draw_matrix(self.player_ships, self.board_size - 1)
                         self.stage = "PLAYING"
+                        self.enemy_ships = set_ships(self.board_size - 1)
+                        self.shooted = False
+                        self.player_shooted = []
+                        self.ai_shooted = []
                         pygame.event.post(start_game_stage)
 
                     else:
@@ -108,6 +117,17 @@ class Game:
                     self.draw_board()
                     self.draw_ships()
                     self.go_back_button.draw()
+
+
+
+                if event == end_game:
+                    self.surface.fill((40, 41, 35))
+                    if self.win == 1:
+                        self.draw_text('You WON', 50, constants.WIDTH//2, constants.HEIGHT//2)
+                    else:
+                        self.draw_text("You LOST", 50, constants.WIDTH//2,constants.HEIGHT//2)
+                    self.go_back_button.draw()
+
 
                 # powstały 3 nowe eventy
                 # mousebuttondown - naciśnięcie przycisku myszy
@@ -131,17 +151,43 @@ class Game:
                         pos[0] in range(int(self.tile_width) + int(self.offset_enemy_grid),int(self.tile_width * self.board_size) + int(self.offset_enemy_grid)) and 
                         pos[1] in range(int(self.tile_width) + self.offsetY,int(self.tile_width * self.board_size) + self.offsetY)):
 
-                        x = int((pos[0] - int(self.offset_enemy_grid))//self.tile_width)
-                        y = int((pos[1] - self.offsetY)//self.tile_width)
+                        
 
-                        print(pos)
-                        print(x,y)
-                        Shoot(
-                            self.surface,
-                            self.tile_width,
-                            self.enemy_board[x][y].xpos,
-                            self.enemy_board[x][y].ypos,
-                        )
+                        self.x = int((pos[0] - int(self.offset_enemy_grid))//self.tile_width)
+                        self.y = int((pos[1] - self.offsetY)//self.tile_width)
+
+                        if (self.x,self.y) in self.player_shooted:
+                            print("You've already shot at this spot!")
+                        else:
+                            self.player_shooted.append((self.x,self.y))
+                            self.enemy_ships = self.draw_shoot(self.x,self.y,self.enemy_board,self.enemy_ships,self.player_shooted)    
+                            self.shooted = True
+
+                        if self.shooted:                   
+                            validate = False
+                            while validate == False:
+                                self.x_ai = randint(1,9)
+                                self.y_ai = randint(1,9)
+                                if (self.x_ai,self.y_ai) in self.ai_shooted:
+                                    pass
+                                else:
+                                    validate = True
+        
+                            self.ai_shooted.append((self.x_ai,self.y_ai))
+                            self.player_ships = self.draw_shoot(self.x_ai,self.y_ai,self.player_board, self.player_ships, self.ai_shooted)
+
+                            print(self.enemy_ships)
+                            self.shooted = False
+
+
+                        if len(self.player_ships) == 0:
+                            self.win = 0
+                            pygame.event.post(end_game)
+                        elif len(self.enemy_ships) == 0:
+                            self.win = 1
+                            pygame.event.post(end_game)
+
+
                 # mousemotion - ruch myszy po planszy
                 # etap przesuwania statku
                 # bierzemy pozycję myszki i rysujemy od nowa planszę, statki i przesuwany statek
@@ -166,6 +212,7 @@ class Game:
                             self.draw_menu()
                             self.stage = 'MENU'
                             self.button_clicked = False
+    
                     if self.stage == "SET_SHIPS":
                         if self.dragged_ship is not None:
                             pos = pygame.mouse.get_pos()
@@ -272,11 +319,45 @@ class Game:
         pass
 
     def draw_text(self, text, size, x, y ):
-        font = pygame.font.Font(self.font_name,size)
-        text_surface = font.render(text, True, (255,255,255))
+        font = pygame.font.Font('8-BIT WONDER.TTF',size)
+        text_surface = font.render(text, True, (200, 200, 200))
         text_rect = text_surface.get_rect()
         text_rect.center = (x,y)
         self.surface.blit(text_surface,text_rect)
+    
+    def draw_shoot(self, x,y, board,  x_ships, shooted):
+        for ship in x_ships:
+            if (x,y) in ship:
+                col =  pygame.Color(255, 40, 0)
+                Shoot(self.surface,
+                        self.tile_width,
+                        board[x][y].xpos,
+                        board[x][y].ypos,
+                        col
+                        )
+                break
+            else :
+                col = pygame.Color(128,128,128)
+                Shoot(self.surface,
+                        self.tile_width,
+                        board[x][y].xpos,
+                        board[x][y].ypos,
+                        col
+                        )
+
+        for ship in x_ships:
+            if all(x in shooted for x in ship):
+                for j in ship:
+                    x,y = j
+                    col = pygame.Color(0,0,0)
+                    Shoot(self.surface,
+                        self.tile_width,
+                        board[x][y].xpos,
+                        board[x][y].ypos,
+                        col
+                        )
+                x_ships.remove(ship)
+        return x_ships      
 
     # tworzenie siatki planszy
     def generate_grid(self, offsetX, offsetY):
@@ -338,11 +419,11 @@ class Game:
                         Ship(
                             self.surface,
                             self.tile_width,
-                            self.player_board[x + 1][y + 1].ypos,
-                            self.player_board[x + 1][y + 1].xpos,
+                            self.player_board[y + 1][x + 1].ypos,
+                            self.player_board[y + 1][x + 1].xpos,
                         )
                     )
-    
+
 
 
     # rysowanie statków wszystkich, oprócz aktualnie przesuwanego
