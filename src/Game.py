@@ -99,6 +99,7 @@ class Game:
                         self.shooted = False
                         self.player_shooted = []
                         self.ai_shooted = []
+                        self.count_shooted = 0
                         pygame.event.post(start_game_stage)
 
                     else:
@@ -122,15 +123,10 @@ class Game:
 
                 if event == end_game:
                     self.surface.fill((40, 41, 35))
-                    if self.win == 1:
-                        self.draw_text('You WON', 50, constants.WIDTH//2, constants.HEIGHT//2)
-                    else:
-                        self.draw_text("You LOST", 50, constants.WIDTH//2,constants.HEIGHT//2)
+                    count = 'You {} in {} moves'.format(self.win, self.count_shooted)
+                    self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 50)
                     self.go_back_button.draw()
 
-
-                # powstały 3 nowe eventy
-                # mousebuttondown - naciśnięcie przycisku myszy
                 # pos to współrzędne myszy
                 # jesteśmy na etapie ustawiania statków
                 # find_dragged znajduje kliknięty statek dla współrzędnych myszki i zapisuje go do self.dragged_ship
@@ -152,15 +148,19 @@ class Game:
                         pos[1] in range(int(self.tile_width) + self.offsetY,int(self.tile_width * self.board_size) + self.offsetY)):
 
                         
-
+                        
                         self.x = int((pos[0] - int(self.offset_enemy_grid))//self.tile_width)
                         self.y = int((pos[1] - self.offsetY)//self.tile_width)
 
                         if (self.x,self.y) in self.player_shooted:
                             print("You've already shot at this spot!")
+                            self.win = 'won'
+                            self.stage = 'ENDGAME'
+                            pygame.event.post(end_game)
                         else:
                             self.player_shooted.append((self.x,self.y))
                             self.enemy_ships = self.draw_shoot(self.x,self.y,self.enemy_board,self.enemy_ships,self.player_shooted)    
+                            self.count_shooted += 1
                             self.shooted = True
 
                         if self.shooted:                   
@@ -176,15 +176,16 @@ class Game:
                             self.ai_shooted.append((self.x_ai,self.y_ai))
                             self.player_ships = self.draw_shoot(self.x_ai,self.y_ai,self.player_board, self.player_ships, self.ai_shooted)
 
-                            print(self.enemy_ships)
                             self.shooted = False
 
 
                         if len(self.player_ships) == 0:
-                            self.win = 0
+                            self.win = 'won'
+                            self.stage = 'ENDGAME'
                             pygame.event.post(end_game)
                         elif len(self.enemy_ships) == 0:
-                            self.win = 1
+                            self.win = 'lost'
+                            self.stage = 'ENDGAME'
                             pygame.event.post(end_game)
 
 
