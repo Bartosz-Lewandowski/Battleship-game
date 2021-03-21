@@ -70,40 +70,41 @@ def set_ships(board_size):
         ships_sizes = constants.SHIPS_9
         for i in ships_sizes:
             tmp_ship = set_ship(taken_spots, board_size, i)
-            ships.extend(tmp_ship[0])
+            ships.append(tmp_ship[0])
             taken_spots.extend(tmp_ship[1])
     elif board_size == 12:
         ships_sizes = constants.SHIPS_12
         for i in ships_sizes:
             axis = random.randint(0,1)
             tmp_ship = set_ship(taken_spots, board_size, i)
-            ships.extend(tmp_ship[0])
+            ships.append(tmp_ship[0])
             taken_spots.extend(tmp_ship[1])
     elif board_size == 15:
         ships_sizes = constants.SHIPS_15
         for i in ships_sizes:
             axis = random.randint(0,1)
             tmp_ship = set_ship(taken_spots, board_size, i)
-            ships.extend(tmp_ship[0])
+            ships.append(tmp_ship[0])
             taken_spots.extend(tmp_ship[1])
     return(ships)
 
-def draw_matrix(board_size):
-    ships = set_ships(board_size)
+
+
+def draw_matrix(ships, board_size):
     matrix = np.zeros((board_size,board_size))
-    for i in ships:
-        matrix[i[0]-1,i[1]-1] = 1
+    for j in ships:
+        for i in j:
+            matrix[i[0]-1,i[1]-1] = 1
     return matrix
 
 
-'''
-test_ship = [(1, 1), (1, 2), (1, 3)] 
-test_taken = [(3, 7), (3, 5), (4, 6), (2, 6), (3, 8), (3, 6), (4, 7), (2, 7), (3, 9), (4, 8), (2, 8), (6, 8), (7, 9), (5, 9), (7, 8), (8, 9), (6, 9), (8, 8), (9, 9)]
-def check_validate(taken_spots, ship):
-    if any(elem in ship for elem in taken_spots):
-        print('Ship is not validate')
-    else:
-        print('Ship is validate')
+# test_ship = [(1, 1), (1, 2), (1, 3)] 
+# test_taken = [(3, 7), (3, 5), (4, 6), (2, 6), (3, 8), (3, 6), (4, 7), (2, 7), (3, 9), (4, 8), (2, 8), (6, 8), (7, 9), (5, 9), (7, 8), (8, 9), (6, 9), (8, 8), (9, 9)]
+# def check_validate(taken_spots, ship):
+#     if any(elem in ship for elem in taken_spots):
+#         print('Ship is not validate')
+#     else:
+#         print('Ship is validate')
 
-check_validate(test_taken,test_ship)'''
+# check_validate(test_taken,test_ship)
 
