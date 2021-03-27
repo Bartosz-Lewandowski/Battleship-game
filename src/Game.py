@@ -147,16 +147,21 @@ class Game:
                         pos[0] in range(int(self.tile_width) + int(self.offset_enemy_grid),int(self.tile_width * self.board_size) + int(self.offset_enemy_grid)) and 
                         pos[1] in range(int(self.tile_width) + self.offsetY,int(self.tile_width * self.board_size) + self.offsetY)):
 
-                        
-                        print(self.enemy_ships)
-                        print(self.player_ships)
                         self.x = int((pos[0] - int(self.offset_enemy_grid))//self.tile_width)
                         self.y = int((pos[1] - self.offsetY)//self.tile_width)
 
                         if (self.x,self.y) in self.player_shooted:
-                            print("You've already shot at this spot!")
+                            GenericButton(
+                                350,
+                                60,
+                                constants.WIDTH / 2 - 375,
+                                constants.HEIGHT - 250,
+                                "You have already shot at this spot",
+                                self.surface,
+                            ).draw()
 
                         else:
+                            pygame.draw.rect(self.surface, [40, 41, 35], [constants.WIDTH / 2 - 375, constants.HEIGHT - 250, 800, 60], 0)
                             self.player_shooted.append((self.x,self.y))
                             self.enemy_ships = self.draw_shoot(self.x,self.y,self.enemy_board,self.enemy_ships,self.player_shooted)    
                             self.count_shooted += 1
