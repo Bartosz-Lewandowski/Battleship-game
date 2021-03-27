@@ -170,8 +170,8 @@ class Game:
                         if self.shooted:                   
                             validate = False
                             while validate == False:
-                                self.x_ai = randint(1,9)
-                                self.y_ai = randint(1,9)
+                                self.x_ai = randint(1,self.board_size - 1)
+                                self.y_ai = randint(1,self.board_size - 1)
                                 if (self.x_ai,self.y_ai) in self.ai_shooted:
                                     pass
                                 else:
