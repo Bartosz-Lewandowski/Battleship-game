@@ -94,7 +94,7 @@ def draw_matrix(ships, board_size):
     matrix = np.zeros((board_size,board_size))
     for j in ships:
         for i in j:
-            matrix[i[0]-1,i[1]-1] = 1
+            matrix[i[1]-1,i[0]-1] = 1
     return matrix
 
 

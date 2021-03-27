@@ -148,15 +148,14 @@ class Game:
                         pos[1] in range(int(self.tile_width) + self.offsetY,int(self.tile_width * self.board_size) + self.offsetY)):
 
                         
-                        
+                        print(self.enemy_ships)
+                        print(self.player_ships)
                         self.x = int((pos[0] - int(self.offset_enemy_grid))//self.tile_width)
                         self.y = int((pos[1] - self.offsetY)//self.tile_width)
 
                         if (self.x,self.y) in self.player_shooted:
                             print("You've already shot at this spot!")
-                            self.win = 'won'
-                            self.stage = 'ENDGAME'
-                            pygame.event.post(end_game)
+
                         else:
                             self.player_shooted.append((self.x,self.y))
                             self.enemy_ships = self.draw_shoot(self.x,self.y,self.enemy_board,self.enemy_ships,self.player_shooted)    
@@ -172,18 +171,18 @@ class Game:
                                     pass
                                 else:
                                     validate = True
-        
+
                             self.ai_shooted.append((self.x_ai,self.y_ai))
                             self.player_ships = self.draw_shoot(self.x_ai,self.y_ai,self.player_board, self.player_ships, self.ai_shooted)
 
                             self.shooted = False
 
 
-                        if len(self.player_ships) == 0:
-                            self.win = 'won'
+                        if len(self.enemy_ships) == 0:
+                            self.win = 'win'
                             self.stage = 'ENDGAME'
                             pygame.event.post(end_game)
-                        elif len(self.enemy_ships) == 0:
+                        elif len(self.player_ships) == 0:
                             self.win = 'lost'
                             self.stage = 'ENDGAME'
                             pygame.event.post(end_game)
@@ -249,6 +248,25 @@ class Game:
                                         total_ship_tiles += 1
                             if total_ship_tiles == sum(self.avalaible_ships):
                                 self.stage = "PLAYING"
+                                tmp = {}
+                                for x,z in enumerate(self.ships_matrix):
+                                    for i,n in enumerate(z):
+                                        if n != 0:
+                                            if n in tmp:
+                                                tmp[n].append((i + 1,x + 1))
+                                            else:
+
+                                                tmp[n] = [(i + 1,x + 1)]
+
+                                self.player_ships = []
+                                for key,value in enumerate(tmp):
+                                    self.player_ships.append(tmp[value])
+
+                                self.enemy_ships = set_ships(self.board_size - 1)
+                                self.shooted = False
+                                self.player_shooted = []
+                                self.ai_shooted = []
+                                self.count_shooted = 0
                                 pygame.event.post(start_game_stage)
 
             # main_loop end
@@ -420,8 +438,8 @@ class Game:
                         Ship(
                             self.surface,
                             self.tile_width,
-                            self.player_board[y + 1][x + 1].ypos,
-                            self.player_board[y + 1][x + 1].xpos,
+                            self.player_board[x + 1][y + 1].ypos,
+                            self.player_board[x + 1][y + 1].xpos,
                         )
                     )
 
