@@ -11,6 +11,7 @@ from Ship import Ship
 from DraggableShip import DraggableShip
 from GenericButton import GenericButton
 from Shoot import Shoot
+from Fireworks import Firework, update
 
 ships_layout_stage = pygame.event.Event(pygame.USEREVENT, attr1="layout_stage")
 select_size_stage = pygame.event.Event(pygame.USEREVENT, attr1="select_size_stage")
@@ -26,6 +27,8 @@ class Game:
         self.surface = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
         self.ships_layout_type = 0
         self.game_diff = 0
+        self.running = False
+        self.fireworks = [Firework(constants.WIDTH,constants.HEIGHT) for i in range(5)]
         self.my_theme = pygame_menu.themes.Theme(
             widget_font=pygame_menu.font.FONT_8BIT,
             background_color=(40, 41, 35),
@@ -57,7 +60,7 @@ class Game:
         self.go_back_button = GenericButton(
             300,
             60,
-            constants.WIDTH / 2 - 140,
+            constants.WIDTH / 2 - 135,
             constants.HEIGHT - 80,
             "Back to menu",
             self.surface,
@@ -78,10 +81,27 @@ class Game:
             "Start Game",
             self.surface,
         )
+        self.back = GenericButton(
+            300,
+            60,
+            10,
+            constants.HEIGHT - 80,
+            "Go back",
+            self.surface,
+        )
+        self.play_again = GenericButton(
+            300,
+            60,
+            constants.WIDTH / 2 - 105,
+            constants.HEIGHT - 120,
+            "Play again",
+            self.surface
+        )
         self.draw_menu()
         
         drag = False
         while True:
+            clock = pygame.time.Clock()
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
@@ -89,6 +109,7 @@ class Game:
 
                 if event == ships_layout_stage:
                     self.surface.fill((40, 41, 35))
+                    self.back.draw()
                     self.go_back_button.draw()
                     self.menu.disable()
                     if self.ships_layout_type == 0:
@@ -109,6 +130,7 @@ class Game:
                             for i in range(0, self.board_size - 1)
                         ]
                         self.draw_board(chosing_stage=True)
+                        self.back.draw()
                         self.go_back_button.draw()
                         self.reset_layout.draw()
                         self.start_button.draw()
@@ -117,31 +139,41 @@ class Game:
                     self.surface.fill((40, 41, 35))
                     self.draw_board()
                     self.draw_ships()
+                    self.back.draw()
                     self.go_back_button.draw()
 
 
 
                 if event == end_game:
                     self.surface.fill((40, 41, 35))
-                    count = 'You {} in {} moves'.format(self.win, self.count_shooted)
-                    self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 50)
-                    self.go_back_button.draw()
+                    if self.win == 'win':
+                        self.running = True
+                        t_end = time.time() + 5
+
+                    else:
+                        count = 'You {} in {} moves'.format(self.win, self.count_shooted)
+                        self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 50)
+                        self.play_again.draw()
+                        self.go_back_button.draw()
+
+
 
                 # pos to współrzędne myszy
                 # jesteśmy na etapie ustawiania statków
                 # find_dragged znajduje kliknięty statek dla współrzędnych myszki i zapisuje go do self.dragged_ship
                 # drag jest True bo jeszcze nie puściliśmy przycisku myszy
                 if event.type == pygame.MOUSEBUTTONDOWN:
+
                     pos = pygame.mouse.get_pos()
                     self.button_clicked = False
-                    self.go_back_button.draw()
-                    if self.go_back_button.clicked(pos) or self.reset_layout.clicked(pos):
+                    if self.go_back_button.clicked(pos) or self.reset_layout.clicked(pos) or self.back.clicked(pos):
                         self.button_clicked = True
                     if self.stage == "SET_SHIPS":
                         self.find_dragged(pos)
                         drag = True
                         self.reset_layout.draw()
                         self.start_button.draw()
+                        self.back.draw()
 
                     if (self.stage == 'PLAYING' and 
                         pos[0] in range(int(self.tile_width) + int(self.offset_enemy_grid),int(self.tile_width * self.board_size) + int(self.offset_enemy_grid)) and 
@@ -159,7 +191,6 @@ class Game:
                                 "You have already shot at this spot",
                                 self.surface,
                             ).draw()
-
                         else:
                             pygame.draw.rect(self.surface, [40, 41, 35], [constants.WIDTH / 2 - 375, constants.HEIGHT - 250, 800, 60], 0)
                             self.player_shooted.append((self.x,self.y))
@@ -191,6 +222,9 @@ class Game:
                             self.win = 'lost'
                             self.stage = 'ENDGAME'
                             pygame.event.post(end_game)
+                
+                
+                    
 
 
                 # mousemotion - ruch myszy po planszy
@@ -203,9 +237,11 @@ class Game:
                         self.draw_playerboard()
                         self.draw_draggable_ships()
                         self.dragged_ship.move(pos)
+                        self.back.draw()
                         self.go_back_button.draw()
                         self.reset_layout.draw()
                         self.start_button.draw()
+ 
 
                 # mousebuttonup - zwolnienie przycisku myszy
                 # pobieramy współrzędne myszki
@@ -214,9 +250,10 @@ class Game:
                 # wszystko rysujemy ponownie
                 if event.type == pygame.MOUSEBUTTONUP:
                     if self.button_clicked and self.go_back_button.clicked(pos):
-                            self.draw_menu()
-                            self.stage = 'MENU'
-                            self.button_clicked = False
+                        self.draw_menu()
+                        self.stage = 'MENU'
+                        self.button_clicked = False
+                        self.running = False
     
                     if self.stage == "SET_SHIPS":
                         if self.dragged_ship is not None:
@@ -230,8 +267,16 @@ class Game:
                             self.draw_playerboard()
                             self.draw_draggable_ships()
                             self.go_back_button.draw()
+                            self.back.draw()
                             self.reset_layout.draw()
                             self.start_button.draw()
+
+    
+                        if self.button_clicked and self.back.clicked(pos):
+                            self.draw_menu()
+                            self.select_difficulty(self.game_diff)
+                            self.stage = 'MENU'
+                            self.button_clicked = False
 
                         if self.button_clicked and self.reset_layout.clicked(pos):
                             self.surface.fill((40, 41, 35))
@@ -242,6 +287,7 @@ class Game:
                             ]
                             self.draw_board(chosing_stage=True)
                             self.go_back_button.draw()
+                            self.back.draw()
                             self.reset_layout.draw()
                             self.start_button.draw()
                             
@@ -273,6 +319,35 @@ class Game:
                                 self.ai_shooted = []
                                 self.count_shooted = 0
                                 pygame.event.post(start_game_stage)
+
+                    if self.stage == 'PLAYING':
+                        if self.button_clicked and self.back.clicked(pos):
+                            self.draw_menu()
+                            self.select_difficulty(self.game_diff)
+                            self.stage = 'MENU'
+                            self.button_clicked = False
+
+                    if self.stage == 'ENDGAME':
+                        if self.play_again.clicked(pos):
+                            pygame.event.post(ships_layout_stage)
+
+            if self.running == True:
+                
+                if time.time() < t_end:
+                    clock.tick(100)
+                    self.surface.fill((40, 41, 35))
+                    if time.time() < t_end - 3.5:
+                        if randint(1,10) == 1:
+                            self.fireworks.append(Firework(constants.WIDTH,constants.HEIGHT))   
+                    update(self.surface, self.fireworks)
+                else:
+                    self.surface.fill((40, 41, 35))
+                    self.running = False
+                    count = 'You {} in {} moves'.format(self.win, self.count_shooted)
+                    self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 50)
+                    self.play_again.draw()
+                    self.go_back_button.draw()
+
 
             # main_loop end
 
@@ -317,6 +392,7 @@ class Game:
         self.menu.add_button("Easy", lambda: self.select_difficulty(0))
         self.menu.add_button("Hard", lambda: self.select_difficulty(1))
         self.menu.add_vertical_margin(100)
+        self.menu.add_button('Back', lambda: self.start_the_game())
         self.menu.add_button('Back to menu', lambda: self.main_menu())
 
     def select_difficulty(self,difficulty):
@@ -330,6 +406,7 @@ class Game:
         self.menu.add_button("Random", lambda: self.select_ships_layout(0))
         self.menu.add_button("Pick", lambda: self.select_ships_layout(1))
         self.menu.add_vertical_margin(100)
+        self.menu.add_button('Back', lambda: self.select_size(self.board_size))
         self.menu.add_button('Back to menu', lambda: self.main_menu())
     
     def select_ships_layout(self,layout):
