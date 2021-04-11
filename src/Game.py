@@ -6,7 +6,7 @@ from random import randint
 import time 
 import constants
 from Tile import Tile
-from set_ships import draw_matrix, set_ships
+from set_ships import draw_matrix, set_ships, add_new_taken_spots
 from Ship import Ship
 from DraggableShip import DraggableShip
 from GenericButton import GenericButton
@@ -123,6 +123,7 @@ class Game:
                         self.ai_shooted = []
                         self.count_shooted = 0
                         self.ship_hit = []
+                        self.sinked = []
                         pygame.event.post(start_game_stage)
 
                     else:
@@ -194,7 +195,7 @@ class Game:
                         else:
                             pygame.draw.rect(self.surface, [40, 41, 35], [constants.WIDTH / 2 - 375, constants.HEIGHT - 250, 800, 60], 0)
                             self.player_shooted.append((self.x,self.y))
-                            self.enemy_ships = self.draw_shoot(self.x,self.y,self.enemy_board,self.enemy_ships,self.player_shooted)    
+                            self.enemy_ships = self.draw_shoot(self.x,self.y,self.enemy_board,self.enemy_ships,self.player_shooted,self.sinked)[0]    
                             self.count_shooted += 1
                             self.shooted = True
 
@@ -204,7 +205,7 @@ class Game:
                                 if self.game_diff == 0:
                                     self.x_ai = randint(1,self.board_size - 1)
                                     self.y_ai = randint(1,self.board_size - 1)
-                                elif self.game_diff == 1:
+                                elif self.game_diff == 1 or self.game_diff == 2:
                                     if self.ship_hit != []:
                                         for x in self.ship_hit:
                                             self.x_ai = x[0]
@@ -214,12 +215,16 @@ class Game:
                                     else:
                                         self.x_ai = randint(1,self.board_size - 1)
                                         self.y_ai = randint(1,self.board_size - 1)
-                                        print(self.x_ai,self.y_ai)
                                         ships_copy = copy.deepcopy(self.player_ships)
                                         for ship in ships_copy:
                                             if (self.x_ai,self.y_ai) in ship:
                                                 self.ship_hit = ship
                                                 self.ship_hit.remove((self.x_ai,self.y_ai))
+                                    if self.game_diff == 2:
+                                        if self.sinked != []:
+                                            blank_spots = add_new_taken_spots(self.sinked, self.board_size)
+                                            self.ai_shooted.extend(blank_spots)
+                                            self.sinked = []
 
                                 if (self.x_ai,self.y_ai) in self.ai_shooted:
                                     pass
@@ -227,10 +232,8 @@ class Game:
                                     validate = True
 
                             self.ai_shooted.append((self.x_ai,self.y_ai))
-                            print(self.x_ai,self.y_ai)
-                            print(self.player_ships)
-                            self.player_ships = self.draw_shoot(self.x_ai,self.y_ai,self.player_board, self.player_ships, self.ai_shooted)
-
+                            print(self.ai_shooted)
+                            self.player_ships, self.sinked = self.draw_shoot(self.x_ai,self.y_ai,self.player_board, self.player_ships, self.ai_shooted, self.sinked)
                             self.shooted = False
 
 
@@ -339,6 +342,7 @@ class Game:
                                 self.ai_shooted = []
                                 self.count_shooted = 0
                                 self.ship_hit = []
+                                self.sinked = []
                                 pygame.event.post(start_game_stage)
 
                     if self.stage == 'PLAYING':
@@ -411,16 +415,20 @@ class Game:
         self.menu.add_label('Select difficulty level', font_size=50)
         self.menu.add_vertical_margin(150)
         self.menu.add_button("Easy", lambda: self.select_difficulty(0))
-        self.menu.add_button("Hard", lambda: self.select_difficulty(1))
+        self.menu.add_button("Medium", lambda: self.select_difficulty(1))
+        self.menu.add_button("Hard", lambda: self.select_difficulty(2))
         self.menu.add_vertical_margin(100)
         self.menu.add_button('Back', lambda: self.start_the_game())
         self.menu.add_button('Back to menu', lambda: self.main_menu())
 
     def select_difficulty(self,difficulty):
-        if difficulty == 1:
-            self.game_diff = 1
-        elif difficulty == 0:
+        if difficulty == 0:
             self.game_diff = 0
+        elif difficulty == 1:
+            self.game_diff = 1
+        elif difficulty == 2:
+            self.game_diff = 2
+
         self.menu.clear()
         self.menu.add_label('Select ships layout', font_size=50)
         self.menu.add_vertical_margin(150)
@@ -447,7 +455,7 @@ class Game:
         text_rect.center = (x,y)
         self.surface.blit(text_surface,text_rect)
     
-    def draw_shoot(self, x,y, board,  x_ships, shooted):
+    def draw_shoot(self, x,y, board,  x_ships, shooted, sinked):
         for ship in x_ships:
             if (x,y) in ship:
                 col =  pygame.Color(255, 40, 0)
@@ -478,8 +486,10 @@ class Game:
                         board[x][y].ypos,
                         col
                         )
+                    if x_ships == self.player_ships:
+                        sinked.append(j)
                 x_ships.remove(ship)
-        return x_ships      
+        return x_ships, sinked      
 
     # tworzenie siatki planszy
     def generate_grid(self, offsetX, offsetY):
