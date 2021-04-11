@@ -28,6 +28,9 @@ class Game:
         self.surface = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
         self.ships_layout_type = 0
         self.game_diff = 0
+        self.best_score_9 = 999
+        self.best_score_12 = 999
+        self.best_score_15 = 999
         self.running = False
         self.fireworks = [Firework(constants.WIDTH,constants.HEIGHT) for i in range(5)]
         self.my_theme = pygame_menu.themes.Theme(
@@ -149,7 +152,7 @@ class Game:
 
                 if event == end_game:
                     self.surface.fill((40, 41, 35))
-                    if self.win == 'win':
+                    if self.win == 'won':
                         self.running = True
                         t_end = time.time() + 5
 
@@ -232,13 +235,12 @@ class Game:
                                     validate = True
 
                             self.ai_shooted.append((self.x_ai,self.y_ai))
-                            print(self.ai_shooted)
                             self.player_ships, self.sinked = self.draw_shoot(self.x_ai,self.y_ai,self.player_board, self.player_ships, self.ai_shooted, self.sinked)
                             self.shooted = False
 
 
                         if len(self.enemy_ships) == 0:
-                            self.win = 'win'
+                            self.win = 'won'
                             self.stage = 'ENDGAME'
                             pygame.event.post(end_game)
                         elif len(self.player_ships) == 0:
@@ -368,8 +370,13 @@ class Game:
                 else:
                     self.surface.fill((40, 41, 35))
                     self.running = False
-                    count = 'You {} in {} moves'.format(self.win, self.count_shooted)
-                    self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 50)
+                    if self.board_size == 10:
+                        self.best_score_9 = self.draw_final_text(self.best_score_9,'9x9')
+                    elif self.board_size == 13:
+                        self.best_score_12 = self.draw_final_text(self.best_score_12,'12x12')
+                    else:
+                        self.best_score_15 = self.draw_final_text(self.best_score_15,'15x15')
+                                       
                     self.play_again.draw()
                     self.go_back_button.draw()
 
@@ -381,6 +388,29 @@ class Game:
                 self.menu.draw(self.surface)
 
             pygame.display.update()
+
+    def draw_final_text(self, best_score, board):
+        if best_score == 999:
+            self.draw_text('Congratulations you set a new record on board {}'.format(board), 25, constants.WIDTH//2,constants.HEIGHT//2 + 20)
+            count = 'You {} in {} moves'.format(self.win, self.count_shooted)
+            self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 80) 
+            best_score = self.count_shooted
+        
+        elif self.count_shooted < best_score and best_score != 999:
+            last_best_score = 'The best score was {}'.format(best_score)
+            count = 'You {} in {} moves'.format(self.win, self.count_shooted)
+            self.draw_text('Congratulations you set a new record on board {}'.format(board), 25, constants.WIDTH//2,constants.HEIGHT//2 + 20)
+            self.draw_text(last_best_score, 25, constants.WIDTH//2,constants.HEIGHT//2 + 50)
+            self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 80) 
+            best_score = self.count_shooted
+
+        else: 
+            last_best_score = 'The best score is {} on board {}'.format(best_score, board)
+            count = 'You {} in {} moves'.format(self.win, self.count_shooted)
+            self.draw_text(last_best_score, 25, constants.WIDTH//2,constants.HEIGHT//2 + 50)
+            self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 80) 
+
+        return best_score
 
     def main_menu(self):
         self.menu.clear()
