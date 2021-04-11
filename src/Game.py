@@ -12,6 +12,7 @@ from DraggableShip import DraggableShip
 from GenericButton import GenericButton
 from Shoot import Shoot
 from Fireworks import Firework, update
+import copy
 
 ships_layout_stage = pygame.event.Event(pygame.USEREVENT, attr1="layout_stage")
 select_size_stage = pygame.event.Event(pygame.USEREVENT, attr1="select_size_stage")
@@ -121,6 +122,7 @@ class Game:
                         self.player_shooted = []
                         self.ai_shooted = []
                         self.count_shooted = 0
+                        self.ship_hit = []
                         pygame.event.post(start_game_stage)
 
                     else:
@@ -183,14 +185,12 @@ class Game:
                         self.y = int((pos[1] - self.offsetY)//self.tile_width)
 
                         if (self.x,self.y) in self.player_shooted:
-                            GenericButton(
-                                350,
-                                60,
-                                constants.WIDTH / 2 - 375,
-                                constants.HEIGHT - 250,
+                            self.draw_text(
                                 "You have already shot at this spot",
-                                self.surface,
-                            ).draw()
+                                25,
+                                constants.WIDTH / 2 + 10,
+                                constants.HEIGHT - 240
+                            )
                         else:
                             pygame.draw.rect(self.surface, [40, 41, 35], [constants.WIDTH / 2 - 375, constants.HEIGHT - 250, 800, 60], 0)
                             self.player_shooted.append((self.x,self.y))
@@ -201,14 +201,34 @@ class Game:
                         if self.shooted:                   
                             validate = False
                             while validate == False:
-                                self.x_ai = randint(1,self.board_size - 1)
-                                self.y_ai = randint(1,self.board_size - 1)
+                                if self.game_diff == 0:
+                                    self.x_ai = randint(1,self.board_size - 1)
+                                    self.y_ai = randint(1,self.board_size - 1)
+                                elif self.game_diff == 1:
+                                    if self.ship_hit != []:
+                                        for x in self.ship_hit:
+                                            self.x_ai = x[0]
+                                            self.y_ai = x[1]
+                                            self.ship_hit.remove(x)
+                                            break
+                                    else:
+                                        self.x_ai = randint(1,self.board_size - 1)
+                                        self.y_ai = randint(1,self.board_size - 1)
+                                        print(self.x_ai,self.y_ai)
+                                        ships_copy = copy.deepcopy(self.player_ships)
+                                        for ship in ships_copy:
+                                            if (self.x_ai,self.y_ai) in ship:
+                                                self.ship_hit = ship
+                                                self.ship_hit.remove((self.x_ai,self.y_ai))
+
                                 if (self.x_ai,self.y_ai) in self.ai_shooted:
                                     pass
                                 else:
                                     validate = True
 
                             self.ai_shooted.append((self.x_ai,self.y_ai))
+                            print(self.x_ai,self.y_ai)
+                            print(self.player_ships)
                             self.player_ships = self.draw_shoot(self.x_ai,self.y_ai,self.player_board, self.player_ships, self.ai_shooted)
 
                             self.shooted = False
@@ -318,6 +338,7 @@ class Game:
                                 self.player_shooted = []
                                 self.ai_shooted = []
                                 self.count_shooted = 0
+                                self.ship_hit = []
                                 pygame.event.post(start_game_stage)
 
                     if self.stage == 'PLAYING':
