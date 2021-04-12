@@ -13,12 +13,12 @@ from GenericButton import GenericButton
 from Shoot import Shoot
 from Fireworks import Firework, update
 import copy
-
+import webbrowser
+from parse_path import parse_path
 ships_layout_stage = pygame.event.Event(pygame.USEREVENT, attr1="layout_stage")
 select_size_stage = pygame.event.Event(pygame.USEREVENT, attr1="select_size_stage")
 start_game_stage = pygame.event.Event(pygame.USEREVENT, attr1="start_game_stage")
 end_game = pygame.event.Event(pygame.USEREVENT, attr1="end_game")
-
 
 
 class Game:
@@ -34,7 +34,7 @@ class Game:
         self.running = False
         self.fireworks = [Firework(constants.WIDTH,constants.HEIGHT) for i in range(5)]
         self.my_theme = pygame_menu.themes.Theme(
-            widget_font=pygame_menu.font.FONT_8BIT,
+            widget_font= parse_path('8-BIT WONDER.TTF'),
             background_color=(40, 41, 35),
             cursor_color=(255, 255, 255),
             cursor_selection_color=(80, 80, 80, 120),
@@ -432,7 +432,7 @@ class Game:
 
     def main_menu(self):
         self.menu.clear()
-        self.menu.add_image('statek.png', scale=(0.5,0.5))
+        self.menu.add_image(parse_path('statek.png'), scale=(0.5,0.5))
         self.menu.add_vertical_margin(50)
         self.menu.add_label('MAIN MENU', font_size=100)
         self.menu.add_vertical_margin(200)
@@ -495,11 +495,10 @@ class Game:
     
     def go_to_help(self):
         opener = "open" if sys.platform == "darwin" else "xdg-open"
-        subprocess.call([opener, "help.pdf"])
-        pass
+        webbrowser.open_new(parse_path("help.pdf"))
 
     def draw_text(self, text, size, x, y ):
-        font = pygame.font.Font('8-BIT WONDER.TTF',size)
+        font = pygame.font.Font(parse_path('8-BIT WONDER.TTF'),size)
         text_surface = font.render(text, True, (200, 200, 200))
         text_rect = text_surface.get_rect()
         text_rect.center = (x,y)
