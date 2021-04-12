@@ -1,4 +1,4 @@
-import os
+import subprocess, sys
 import pygame
 import pygame_menu
 from copy import deepcopy
@@ -69,6 +69,14 @@ class Game:
             "Back to menu",
             self.surface,
         )
+        self.help_button = GenericButton(
+            200,
+            60,
+            constants.WIDTH - 150,
+            constants.HEIGHT - 80,
+            "help",
+            self.surface,
+        )
         self.reset_layout = GenericButton(
             200,
             60,
@@ -115,6 +123,7 @@ class Game:
                     self.surface.fill((40, 41, 35))
                     self.back.draw()
                     self.go_back_button.draw()
+                    self.help_button.draw()
                     self.menu.disable()
                     if self.ships_layout_type == 0:
                         self.player_ships = set_ships(self.board_size - 1)
@@ -138,6 +147,7 @@ class Game:
                         self.draw_board(chosing_stage=True)
                         self.back.draw()
                         self.go_back_button.draw()
+                        self.help_button.draw()
                         self.reset_layout.draw()
                         self.start_button.draw()
 
@@ -147,6 +157,7 @@ class Game:
                     self.draw_ships()
                     self.back.draw()
                     self.go_back_button.draw()
+                    self.help_button.draw()
 
 
 
@@ -161,6 +172,7 @@ class Game:
                         self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 50)
                         self.play_again.draw()
                         self.go_back_button.draw()
+                        self.help_button.draw()
 
 
 
@@ -171,8 +183,9 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN:
 
                     pos = pygame.mouse.get_pos()
+                    self.help_clicked = False
                     self.button_clicked = False
-                    if self.go_back_button.clicked(pos) or self.reset_layout.clicked(pos) or self.back.clicked(pos):
+                    if self.go_back_button.clicked(pos) or self.help_button.clicked(pos) or self.reset_layout.clicked(pos) or self.back.clicked(pos):
                         self.button_clicked = True
                     if self.stage == "SET_SHIPS":
                         self.find_dragged(pos)
@@ -264,6 +277,7 @@ class Game:
                         self.dragged_ship.move(pos)
                         self.back.draw()
                         self.go_back_button.draw()
+                        self.help_button.draw()
                         self.reset_layout.draw()
                         self.start_button.draw()
  
@@ -279,7 +293,8 @@ class Game:
                         self.stage = 'MENU'
                         self.button_clicked = False
                         self.running = False
-    
+                    if self.button_clicked and self.help_button.clicked(pos):
+                        self.go_to_help()
                     if self.stage == "SET_SHIPS":
                         if self.dragged_ship is not None:
                             pos = pygame.mouse.get_pos()
@@ -292,6 +307,7 @@ class Game:
                             self.draw_playerboard()
                             self.draw_draggable_ships()
                             self.go_back_button.draw()
+                            self.help_button.draw()
                             self.back.draw()
                             self.reset_layout.draw()
                             self.start_button.draw()
@@ -312,6 +328,7 @@ class Game:
                             ]
                             self.draw_board(chosing_stage=True)
                             self.go_back_button.draw()
+                            self.help_button.draw()
                             self.back.draw()
                             self.reset_layout.draw()
                             self.start_button.draw()
@@ -379,6 +396,7 @@ class Game:
                                        
                     self.play_again.draw()
                     self.go_back_button.draw()
+                    self.help_button.draw()
 
 
             # main_loop end
@@ -476,6 +494,8 @@ class Game:
         pygame.event.post(ships_layout_stage)
     
     def go_to_help(self):
+        opener = "open" if sys.platform == "darwin" else "xdg-open"
+        subprocess.call([opener, "help.pdf"])
         pass
 
     def draw_text(self, text, size, x, y ):
