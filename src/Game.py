@@ -6,12 +6,13 @@ from random import randint
 import time 
 import constants
 from Tile import Tile
-from set_ships import draw_matrix, set_ships
+from set_ships import draw_matrix, set_ships, add_new_taken_spots
 from Ship import Ship
 from DraggableShip import DraggableShip
 from GenericButton import GenericButton
 from Shoot import Shoot
 from Fireworks import Firework, update
+import copy
 
 ships_layout_stage = pygame.event.Event(pygame.USEREVENT, attr1="layout_stage")
 select_size_stage = pygame.event.Event(pygame.USEREVENT, attr1="select_size_stage")
@@ -27,6 +28,9 @@ class Game:
         self.surface = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
         self.ships_layout_type = 0
         self.game_diff = 0
+        self.best_score_9 = 999
+        self.best_score_12 = 999
+        self.best_score_15 = 999
         self.running = False
         self.fireworks = [Firework(constants.WIDTH,constants.HEIGHT) for i in range(5)]
         self.my_theme = pygame_menu.themes.Theme(
@@ -121,6 +125,8 @@ class Game:
                         self.player_shooted = []
                         self.ai_shooted = []
                         self.count_shooted = 0
+                        self.ship_hit = []
+                        self.sinked = []
                         pygame.event.post(start_game_stage)
 
                     else:
@@ -146,7 +152,7 @@ class Game:
 
                 if event == end_game:
                     self.surface.fill((40, 41, 35))
-                    if self.win == 'win':
+                    if self.win == 'won':
                         self.running = True
                         t_end = time.time() + 5
 
@@ -183,39 +189,58 @@ class Game:
                         self.y = int((pos[1] - self.offsetY)//self.tile_width)
 
                         if (self.x,self.y) in self.player_shooted:
-                            GenericButton(
-                                350,
-                                60,
-                                constants.WIDTH / 2 - 375,
-                                constants.HEIGHT - 250,
+                            self.draw_text(
                                 "You have already shot at this spot",
-                                self.surface,
-                            ).draw()
+                                25,
+                                constants.WIDTH / 2 + 10,
+                                constants.HEIGHT - 240
+                            )
                         else:
                             pygame.draw.rect(self.surface, [40, 41, 35], [constants.WIDTH / 2 - 375, constants.HEIGHT - 250, 800, 60], 0)
                             self.player_shooted.append((self.x,self.y))
-                            self.enemy_ships = self.draw_shoot(self.x,self.y,self.enemy_board,self.enemy_ships,self.player_shooted)    
+                            self.enemy_ships = self.draw_shoot(self.x,self.y,self.enemy_board,self.enemy_ships,self.player_shooted,self.sinked)[0]    
                             self.count_shooted += 1
                             self.shooted = True
 
                         if self.shooted:                   
                             validate = False
                             while validate == False:
-                                self.x_ai = randint(1,self.board_size - 1)
-                                self.y_ai = randint(1,self.board_size - 1)
+                                if self.game_diff == 0:
+                                    self.x_ai = randint(1,self.board_size - 1)
+                                    self.y_ai = randint(1,self.board_size - 1)
+                                elif self.game_diff == 1 or self.game_diff == 2:
+                                    if self.ship_hit != []:
+                                        for x in self.ship_hit:
+                                            self.x_ai = x[0]
+                                            self.y_ai = x[1]
+                                            self.ship_hit.remove(x)
+                                            break
+                                    else:
+                                        self.x_ai = randint(1,self.board_size - 1)
+                                        self.y_ai = randint(1,self.board_size - 1)
+                                        ships_copy = copy.deepcopy(self.player_ships)
+                                        for ship in ships_copy:
+                                            if (self.x_ai,self.y_ai) in ship:
+                                                self.ship_hit = ship
+                                                self.ship_hit.remove((self.x_ai,self.y_ai))
+                                    if self.game_diff == 2:
+                                        if self.sinked != []:
+                                            blank_spots = add_new_taken_spots(self.sinked, self.board_size)
+                                            self.ai_shooted.extend(blank_spots)
+                                            self.sinked = []
+
                                 if (self.x_ai,self.y_ai) in self.ai_shooted:
                                     pass
                                 else:
                                     validate = True
 
                             self.ai_shooted.append((self.x_ai,self.y_ai))
-                            self.player_ships = self.draw_shoot(self.x_ai,self.y_ai,self.player_board, self.player_ships, self.ai_shooted)
-
+                            self.player_ships, self.sinked = self.draw_shoot(self.x_ai,self.y_ai,self.player_board, self.player_ships, self.ai_shooted, self.sinked)
                             self.shooted = False
 
 
                         if len(self.enemy_ships) == 0:
-                            self.win = 'win'
+                            self.win = 'won'
                             self.stage = 'ENDGAME'
                             pygame.event.post(end_game)
                         elif len(self.player_ships) == 0:
@@ -318,6 +343,8 @@ class Game:
                                 self.player_shooted = []
                                 self.ai_shooted = []
                                 self.count_shooted = 0
+                                self.ship_hit = []
+                                self.sinked = []
                                 pygame.event.post(start_game_stage)
 
                     if self.stage == 'PLAYING':
@@ -343,8 +370,13 @@ class Game:
                 else:
                     self.surface.fill((40, 41, 35))
                     self.running = False
-                    count = 'You {} in {} moves'.format(self.win, self.count_shooted)
-                    self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 50)
+                    if self.board_size == 10:
+                        self.best_score_9 = self.draw_final_text(self.best_score_9,'9x9')
+                    elif self.board_size == 13:
+                        self.best_score_12 = self.draw_final_text(self.best_score_12,'12x12')
+                    else:
+                        self.best_score_15 = self.draw_final_text(self.best_score_15,'15x15')
+                                       
                     self.play_again.draw()
                     self.go_back_button.draw()
 
@@ -356,6 +388,29 @@ class Game:
                 self.menu.draw(self.surface)
 
             pygame.display.update()
+
+    def draw_final_text(self, best_score, board):
+        if best_score == 999:
+            self.draw_text('Congratulations you set a new record on board {}'.format(board), 25, constants.WIDTH//2,constants.HEIGHT//2 + 20)
+            count = 'You {} in {} moves'.format(self.win, self.count_shooted)
+            self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 80) 
+            best_score = self.count_shooted
+        
+        elif self.count_shooted < best_score and best_score != 999:
+            last_best_score = 'The best score was {}'.format(best_score)
+            count = 'You {} in {} moves'.format(self.win, self.count_shooted)
+            self.draw_text('Congratulations you set a new record on board {}'.format(board), 25, constants.WIDTH//2,constants.HEIGHT//2 + 20)
+            self.draw_text(last_best_score, 25, constants.WIDTH//2,constants.HEIGHT//2 + 50)
+            self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 80) 
+            best_score = self.count_shooted
+
+        else: 
+            last_best_score = 'The best score is {} on board {}'.format(best_score, board)
+            count = 'You {} in {} moves'.format(self.win, self.count_shooted)
+            self.draw_text(last_best_score, 25, constants.WIDTH//2,constants.HEIGHT//2 + 50)
+            self.draw_text(count, 25, constants.WIDTH//2,constants.HEIGHT//2 + 80) 
+
+        return best_score
 
     def main_menu(self):
         self.menu.clear()
@@ -390,16 +445,20 @@ class Game:
         self.menu.add_label('Select difficulty level', font_size=50)
         self.menu.add_vertical_margin(150)
         self.menu.add_button("Easy", lambda: self.select_difficulty(0))
-        self.menu.add_button("Hard", lambda: self.select_difficulty(1))
+        self.menu.add_button("Medium", lambda: self.select_difficulty(1))
+        self.menu.add_button("Hard", lambda: self.select_difficulty(2))
         self.menu.add_vertical_margin(100)
         self.menu.add_button('Back', lambda: self.start_the_game())
         self.menu.add_button('Back to menu', lambda: self.main_menu())
 
     def select_difficulty(self,difficulty):
-        if difficulty == 1:
-            self.game_diff = 1
-        elif difficulty == 0:
+        if difficulty == 0:
             self.game_diff = 0
+        elif difficulty == 1:
+            self.game_diff = 1
+        elif difficulty == 2:
+            self.game_diff = 2
+
         self.menu.clear()
         self.menu.add_label('Select ships layout', font_size=50)
         self.menu.add_vertical_margin(150)
@@ -426,7 +485,7 @@ class Game:
         text_rect.center = (x,y)
         self.surface.blit(text_surface,text_rect)
     
-    def draw_shoot(self, x,y, board,  x_ships, shooted):
+    def draw_shoot(self, x,y, board,  x_ships, shooted, sinked):
         for ship in x_ships:
             if (x,y) in ship:
                 col =  pygame.Color(255, 40, 0)
@@ -457,8 +516,10 @@ class Game:
                         board[x][y].ypos,
                         col
                         )
+                    if x_ships == self.player_ships:
+                        sinked.append(j)
                 x_ships.remove(ship)
-        return x_ships      
+        return x_ships, sinked      
 
     # tworzenie siatki planszy
     def generate_grid(self, offsetX, offsetY):

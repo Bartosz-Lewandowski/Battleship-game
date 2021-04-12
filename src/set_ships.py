@@ -1,8 +1,8 @@
 import random 
 import numpy as np 
 import constants
+
 def set_ship(taken_spots, board_size, ship_size):
-    new_taken_spots = []
     condition = True 
     while condition:
         ship = []
@@ -20,6 +20,10 @@ def set_ship(taken_spots, board_size, ship_size):
             for mast in range(1,ship_size):
                 ship.append((x + mast,y))
         condition = any(elem in ship for elem in taken_spots)
+    return(ship)
+
+def add_new_taken_spots(ship, board_size):
+    new_taken_spots = []
     for spot in ship:
         if spot[0] == 1:
             if spot[1] == board_size:
@@ -61,7 +65,9 @@ def set_ship(taken_spots, board_size, ship_size):
             new_taken_spots.append((spot[0]-1,spot[1]))
     new_taken_spots.extend(ship)
     new_taken_spots = list(dict.fromkeys(new_taken_spots))
-    return(ship, new_taken_spots)
+
+    return new_taken_spots
+
 
 def set_ships(board_size):
     ships = []
@@ -70,22 +76,20 @@ def set_ships(board_size):
         ships_sizes = constants.SHIPS_9
         for i in ships_sizes:
             tmp_ship = set_ship(taken_spots, board_size, i)
-            ships.append(tmp_ship[0])
-            taken_spots.extend(tmp_ship[1])
+            ships.append(tmp_ship)
+            taken_spots.extend(add_new_taken_spots(tmp_ship, board_size))
     elif board_size == 12:
         ships_sizes = constants.SHIPS_12
         for i in ships_sizes:
-            axis = random.randint(0,1)
             tmp_ship = set_ship(taken_spots, board_size, i)
-            ships.append(tmp_ship[0])
-            taken_spots.extend(tmp_ship[1])
+            ships.append(tmp_ship)
+            taken_spots.extend(add_new_taken_spots(tmp_ship, board_size))
     elif board_size == 15:
         ships_sizes = constants.SHIPS_15
         for i in ships_sizes:
-            axis = random.randint(0,1)
             tmp_ship = set_ship(taken_spots, board_size, i)
-            ships.append(tmp_ship[0])
-            taken_spots.extend(tmp_ship[1])
+            ships.append(tmp_ship)
+            taken_spots.extend(add_new_taken_spots(tmp_ship, board_size))
     return(ships)
 
 
@@ -97,14 +101,4 @@ def draw_matrix(ships, board_size):
             matrix[i[1]-1,i[0]-1] = 1
     return matrix
 
-
-# test_ship = [(1, 1), (1, 2), (1, 3)] 
-# test_taken = [(3, 7), (3, 5), (4, 6), (2, 6), (3, 8), (3, 6), (4, 7), (2, 7), (3, 9), (4, 8), (2, 8), (6, 8), (7, 9), (5, 9), (7, 8), (8, 9), (6, 9), (8, 8), (9, 9)]
-# def check_validate(taken_spots, ship):
-#     if any(elem in ship for elem in taken_spots):
-#         print('Ship is not validate')
-#     else:
-#         print('Ship is validate')
-
-# check_validate(test_taken,test_ship)
 
