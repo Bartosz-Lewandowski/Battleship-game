@@ -1,5 +1,5 @@
 import pygame
-
+from parse_path import parse_path
 
 class GenericButton:
     def __init__(self, w, h, x, y, header, window):
@@ -8,7 +8,7 @@ class GenericButton:
         self.x = x
         self.y = y
         self.header = header
-        self.font_name = '8-BIT WONDER.TTF'
+        self.font_name = parse_path('8-BIT WONDER.TTF')
         self.font = pygame.font.Font(self.font_name, int(h * 0.4))
         self.window = window
         self.color = pygame.Color(0, 164, 164, 164)
