@@ -1,4 +1,3 @@
-# wszystkie wykorzystywane zmienne globalne w jednym miejscu
 WIDTH = 1400
 HEIGHT = 1000
 LETTERS = ['A','B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']
