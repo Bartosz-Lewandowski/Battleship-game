@@ -5,9 +5,9 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['/home/klaudia/git_workspace/Battleship-game/src'],
+             pathex=['.'],
              binaries=[],
-             datas=[('/home/klaudia/git_workspace/Battleship-game/src/assets/*', 'assets/')],
+             datas=[('assets/*', 'assets/')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -31,6 +31,5 @@ exe = EXE(pyz,
           upx=True, 
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True,
-          icon='/home/klaudia/git_workspace/Battleship-game/src/ship.ico'
+          console=True
         )
