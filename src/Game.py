@@ -176,10 +176,6 @@ class Game:
 
 
 
-                # pos to współrzędne myszy
-                # jesteśmy na etapie ustawiania statków
-                # find_dragged znajduje kliknięty statek dla współrzędnych myszki i zapisuje go do self.dragged_ship
-                # drag jest True bo jeszcze nie puściliśmy przycisku myszy
                 if event.type == pygame.MOUSEBUTTONDOWN:
 
                     pos = pygame.mouse.get_pos()
@@ -263,11 +259,6 @@ class Game:
                 
                 
                     
-
-
-                # mousemotion - ruch myszy po planszy
-                # etap przesuwania statku
-                # bierzemy pozycję myszki i rysujemy od nowa planszę, statki i przesuwany statek
                 if event.type == pygame.MOUSEMOTION:
                     if self.stage == "SET_SHIPS" and drag and self.dragged_ship is not None:
                         pos = pygame.mouse.get_pos()
@@ -282,11 +273,6 @@ class Game:
                         self.start_button.draw()
  
 
-                # mousebuttonup - zwolnienie przycisku myszy
-                # pobieramy współrzędne myszki
-                # do zmiennej tile zapisujemy kafelek na planszy, na który przesunęliśmy statek (jeśli to miejsce jest walidacyjne)
-                # w if ustawiamy nową pozycję statku, jeśli miejsce jest poprawne
-                # wszystko rysujemy ponownie
                 if event.type == pygame.MOUSEBUTTONUP:
                     if self.button_clicked and self.go_back_button.clicked(pos):
                         self.draw_menu()
@@ -399,8 +385,6 @@ class Game:
                     self.help_button.draw()
 
 
-            # main_loop end
-
             if self.menu.is_enabled():
                 self.menu.update(events)
                 self.menu.draw(self.surface)
@@ -432,7 +416,7 @@ class Game:
 
     def main_menu(self):
         self.menu.clear()
-        self.menu.add_image(parse_path('statek.png'), scale=(0.5,0.5))
+        self.menu.add_image(parse_path('ship.png'), scale=(0.5,0.5))
         self.menu.add_vertical_margin(50)
         self.menu.add_label('MAIN MENU', font_size=100)
         self.menu.add_vertical_margin(200)
@@ -540,7 +524,6 @@ class Game:
                 x_ships.remove(ship)
         return x_ships, sinked      
 
-    # tworzenie siatki planszy
     def generate_grid(self, offsetX, offsetY):
         tiles = [[] for i in range(0, self.board_size)]
         for x in range(0, self.board_size):
@@ -564,7 +547,6 @@ class Game:
                 )
         return tiles
 
-    # rysowanie planszy
     def draw_board(self, chosing_stage=False):
         self.tile_width = ((constants.WIDTH - 100) / self.board_size) // 2
         self.offset_enemy_grid = self.tile_width * self.board_size + 50
@@ -607,25 +589,21 @@ class Game:
 
 
 
-    # rysowanie statków wszystkich, oprócz aktualnie przesuwanego
     def draw_draggable_ships(self):
         for ship in self.draggable_ships:
             if not self.dragged_ship or ship.id != self.dragged_ship.id:
                 ship.draw()
 
-    # rysowanie planszy gracza
     def draw_playerboard(self):
         for row in self.player_board:
             for tile in row:
                 tile.draw()
 
-    # rysowanie planszy przeciwnika
     def draw_enemyboard(self):
         for row in self.enemy_board:
             for tile in row:
                 tile.draw()
 
-    # znajduje kliknięty statek i przypisuje do self.dragged_ship
     def find_dragged(self, pos):
         self.dragged_ship = None
         for ship in self.draggable_ships:
@@ -633,7 +611,6 @@ class Game:
                 self.dragged_ship = ship
                 break
 
-    # zwraca kafelek, na który odłożyliśmy statek, jeśli miejsce jest walidacyjne
     def match_validate_tile_to_ship(self, pos):
         for row_idx, row in enumerate(self.player_board):
             for cell_idx, cell in enumerate(row):
@@ -656,7 +633,6 @@ class Game:
                             return cell
         return None
 
-    # sprawdza czy miejsce nie jest zajęte i czy w otoczeniu statku w nowym ułożeniu nie ma innych statków
     def validate_add_to_matrix(self, x, y, length, ship_id, rotated):
         is_valid = True
 
@@ -688,7 +664,6 @@ class Game:
                 surrounding_valid = False
             return surrounding_valid
 
-        # sprawdza czy miejsce nie jest zajęte przez inny statek
         for row_idx, row in enumerate(self.ships_matrix):
             for cell_idx, cell in enumerate(row):
                 if (
@@ -709,8 +684,7 @@ class Game:
                     and cell != ship_id
                 ):
                     is_valid = False
-        # jeśli ułożenie jest poprawne, aktualizuje macierz ships_matrix, przy okazji wykorzystując funkcję check_surrounding do dodatkowego sprawdzenia otoczenia
-        # zwraca True (można ułożyć) albo False (nie można)
+
         if is_valid:
             temp_matrix = deepcopy(self.ships_matrix)
             for row_idx, row in enumerate(temp_matrix):

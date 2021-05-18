@@ -1,0 +1,13 @@
+altgraph==0.17
+future==0.18.2
+macholib==1.14
+pefile==2019.4.18
+pycodestyle==2.6.0
+pygame==2.0.0
+pygame-menu==3.3.2
+appdirs==1.4.4
+autopep8==1.5.4
+black==20.8b1
+click==7.1.2
+numpy==1.19.4
+pathspec==0.8.1
